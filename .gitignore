@@ -1,0 +1,21 @@
+# Backend FastAPI - sekrety i pliki lokalne
+.env
+events.db
+uploads/
+
+# Python backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python virtual environments
+venv/
+.venv/
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
+
+# VS Code lokalne ustawienia
+.vscode/
