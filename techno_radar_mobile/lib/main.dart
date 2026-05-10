@@ -67,8 +67,15 @@ class _MyAppState extends State<MyApp> {
 /* ================= API HELPER ================= */
 
 class ApiHelper {
-  static const String baseUrl = 'https://web-production-5db5f.up.railway.app';
+  // Backend lokalny — używany podczas pracy na komputerze z uruchomionym FastAPI.
+  static const String localBaseUrl = 'http://127.0.0.1:8000';
 
+  // Backend produkcyjny — publiczny backend uruchomiony na Railway.
+  static const String prodBaseUrl = 'https://web-production-5db5f.up.railway.app';
+
+  // Aktualnie używany backend.
+  // Na produkcji używamy Railway.
+  static const String baseUrl = prodBaseUrl;
   static Future<Map<String, String>> headers() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
