@@ -172,7 +172,12 @@ def get_events(
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,
-            "cloudinary_public_id": event.cloudinary_public_id
+            "cloudinary_public_id": event.cloudinary_public_id,
+            "source_name": event.source_name,
+            "source_url": event.source_url,
+            "external_id": event.external_id,
+            "is_verified": event.is_verified,
+            "imported_at": event.imported_at    
         })
 
     return result
@@ -203,7 +208,12 @@ def get_public_events(
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,
-            "cloudinary_public_id": event.cloudinary_public_id
+            "cloudinary_public_id": event.cloudinary_public_id,
+            "source_name": event.source_name,
+            "source_url": event.source_url,
+            "external_id": event.external_id,
+            "is_verified": event.is_verified,
+            "imported_at": event.imported_at
         })
 
     return result
@@ -233,7 +243,12 @@ def get_my_events(
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,
-            "cloudinary_public_id": event.cloudinary_public_id
+            "cloudinary_public_id": event.cloudinary_public_id,
+            "source_name": event.source_name,
+            "source_url": event.source_url,
+            "external_id": event.external_id,
+            "is_verified": event.is_verified,
+            "imported_at": event.imported_at
         })
 
     return result
@@ -312,29 +327,39 @@ def create_event(
         return {"error": "Only admin can create events"}
 
     new_event = Event(
-        name=event.name,
-        city=event.city,
-        date=event.date,
-        club=event.club,
-        music_type=event.music_type,
-        image_url=event.image_url,
-        cloudinary_public_id=event.cloudinary_public_id,
-        user_id=user_id
-    )
+    name=event.name,
+    city=event.city,
+    date=event.date,
+    club=event.club,
+    music_type=event.music_type,
+    image_url=event.image_url,
+    cloudinary_public_id=event.cloudinary_public_id,
+    source_name=event.source_name,
+    source_url=event.source_url,
+    external_id=event.external_id,
+    is_verified=event.is_verified,
+    imported_at=event.imported_at,
+    user_id=user_id
+)
 
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
 
     return {
-        "id": new_event.id,
-        "name": new_event.name,
-        "city": new_event.city,
-        "date": new_event.date,
-        "club": new_event.club,
-        "music_type": new_event.music_type,
-        "image_url": new_event.image_url,
-        "cloudinary_public_id": new_event.cloudinary_public_id
+    "id": new_event.id,
+    "name": new_event.name,
+    "city": new_event.city,
+    "date": new_event.date,
+    "club": new_event.club,
+    "music_type": new_event.music_type,
+    "image_url": new_event.image_url,
+    "cloudinary_public_id": new_event.cloudinary_public_id,
+    "source_name": new_event.source_name,
+    "source_url": new_event.source_url,
+    "external_id": new_event.external_id,
+    "is_verified": new_event.is_verified,
+    "imported_at": new_event.imported_at
 }
     
 
@@ -517,7 +542,11 @@ def update_event(
     event.music_type = updated_event.music_type
     event.image_url = updated_event.image_url
     event.cloudinary_public_id = updated_event.cloudinary_public_id
-
+    event.source_name = updated_event.source_name
+    event.source_url = updated_event.source_url
+    event.external_id = updated_event.external_id
+    event.is_verified = updated_event.is_verified
+    event.imported_at = updated_event.imported_at
     db.commit()
     db.refresh(event)
 

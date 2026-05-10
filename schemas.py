@@ -9,6 +9,11 @@ class EventCreate(BaseModel):
     music_type: str
     image_url: str = ""
     cloudinary_public_id: str = ""
+    source_name: str = "manual"
+    source_url: str = ""
+    external_id: str = ""
+    is_verified: int = 1
+    imported_at: str = ""
 
     @field_validator("name", "city", "date", "club", "music_type")
     @classmethod
@@ -27,6 +32,11 @@ class EventResponse(BaseModel):
     music_type: str
     image_url: str = ""
     cloudinary_public_id: str = ""
+    source_name: str = "manual"
+    source_url: str = ""
+    external_id: str = ""
+    is_verified: int = 1
+    imported_at: str = ""
 
     class Config:
         from_attributes = True

@@ -14,6 +14,11 @@ class Event(Base):
     music_type = Column(Text, nullable=False)
     image_url = Column(Text, default="")
     cloudinary_public_id = Column(Text, default="")
+    source_name = Column(Text, default="manual")
+    source_url = Column(Text, default="")
+    external_id = Column(Text, default="")
+    is_verified = Column(Integer, default=1)
+    imported_at = Column(Text, default="")
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     owner = relationship("User", back_populates="events")
