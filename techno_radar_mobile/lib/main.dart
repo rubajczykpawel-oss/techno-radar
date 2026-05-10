@@ -76,6 +76,7 @@ class ApiHelper {
   // Aktualnie używany backend.
   // Na produkcji używamy Railway.
   static const String baseUrl = prodBaseUrl;
+
   static Future<Map<String, String>> headers() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
@@ -143,40 +144,78 @@ class _LoginPageState extends State<LoginPage> {
   final email = TextEditingController();
   final password = TextEditingController();
 
+  bool isLoggingIn = false;
+  bool eyesOpen = false;
+
   Future<void> login() async {
-    final response = await http.post(
-      Uri.parse("${ApiHelper.baseUrl}/login"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "email": email.text,
-        "password": password.text,
-      }),
-    );
+    if (isLoggingIn) return;
 
-    final data = jsonDecode(response.body);
+    setState(() {
+      isLoggingIn = true;
+      eyesOpen = false;
+    });
 
-    if (data["message"] == "Login successful") {
-      final prefs = await SharedPreferences.getInstance();
+    try {
+      final response = await http.post(
+        Uri.parse("${ApiHelper.baseUrl}/login"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": email.text.trim(),
+          "password": password.text,
+        }),
+      );
 
-      await prefs.setString("token", data["token"]);
+      final data = jsonDecode(response.body);
 
-      bool admin = false;
+      if (data["message"] == "Login successful") {
+        final prefs = await SharedPreferences.getInstance();
 
-      if (data["is_admin"] == 1) {
-        admin = true;
+        await prefs.setString("token", data["token"]);
+
+        bool admin = false;
+
+        if (data["is_admin"] == 1) {
+          admin = true;
+        }
+
+        await prefs.setBool("is_admin", admin);
+
+        if (!mounted) return;
+
+        setState(() {
+          eyesOpen = true;
+        });
+
+        await Future.delayed(const Duration(milliseconds: 850));
+
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const EventListPage()),
+        );
+      } else {
+        if (!mounted) return;
+
+        setState(() {
+          isLoggingIn = false;
+          eyesOpen = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Błędne dane logowania")),
+        );
       }
-
-      await prefs.setBool("is_admin", admin);
-
+    } catch (error) {
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const EventListPage()),
-      );
-    } else {
+      setState(() {
+        isLoggingIn = false;
+        eyesOpen = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Błędne dane logowania")),
+        SnackBar(content: Text("Błąd połączenia: $error")),
       );
     }
   }
@@ -195,12 +234,28 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  Widget loginCharacterImage() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 450),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: Image.asset(
+        eyesOpen
+            ? "assets/images/login_open.png"
+            : "assets/images/login_closed.png",
+        key: ValueKey<bool>(eyesOpen),
+        height: 170,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Container(
-          width: 380,
+          width: 400,
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
             color: Colors.grey[900],
@@ -216,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.music_note, size: 56, color: Colors.deepPurple),
+              loginCharacterImage(),
               const SizedBox(height: 12),
               const Text(
                 "TECHNO RADAR",
@@ -226,9 +281,21 @@ class _LoginPageState extends State<LoginPage> {
                   letterSpacing: 1.5,
                 ),
               ),
-              const SizedBox(height: 26),
+              const SizedBox(height: 8),
+              Text(
+                eyesOpen
+                    ? "Zalogowano. Witaj w radarze."
+                    : "Zaloguj się, żeby wejść do świata eventów.",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
               TextField(
                 controller: email,
+                enabled: !isLoggingIn,
                 decoration: const InputDecoration(
                   labelText: "Email",
                   border: OutlineInputBorder(),
@@ -238,23 +305,31 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 14),
               TextField(
                 controller: password,
+                enabled: !isLoggingIn,
                 obscureText: true,
                 decoration: const InputDecoration(
                   labelText: "Hasło",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                 ),
+                onSubmitted: (_) => login(),
               ),
               const SizedBox(height: 22),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: login,
-                  child: const Text("Zaloguj"),
+                  onPressed: isLoggingIn ? null : login,
+                  child: isLoggingIn
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Zaloguj"),
                 ),
               ),
               TextButton(
-                onPressed: goRegister,
+                onPressed: isLoggingIn ? null : goRegister,
                 child: const Text("Nie masz konta? Zarejestruj się"),
               ),
             ],
@@ -284,8 +359,8 @@ class _RegisterPageState extends State<RegisterPage> {
       Uri.parse("${ApiHelper.baseUrl}/register"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "username": username.text,
-        "email": email.text,
+        "username": username.text.trim(),
+        "email": email.text.trim(),
         "password": password.text,
       }),
     );
@@ -331,6 +406,12 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Image.asset(
+                "assets/images/login_closed.png",
+                height: 130,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 14),
               const Text(
                 "Utwórz konto",
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
@@ -747,15 +828,6 @@ class EventDetailsPage extends StatelessWidget {
     required this.onEdit,
   });
 
-  Color getColor(String type) {
-    if (type == "Techno") return Colors.deepPurple;
-    if (type == "Hard Techno") return Colors.red;
-    if (type == "Acid Techno") return Colors.green;
-    if (type == "Minimal") return Colors.orange;
-    if (type == "Industrial Techno") return Colors.blueGrey;
-    return Colors.deepPurple;
-  }
-
   Widget detailRow(String label, String value, IconData icon) {
     return Card(
       child: ListTile(
@@ -1019,6 +1091,7 @@ class _AddEventPageState extends State<AddEventPage> {
   final club = TextEditingController();
   final musicType = TextEditingController();
   final imageUrl = TextEditingController();
+  final cloudinaryPublicId = TextEditingController();
 
   bool uploadingImage = false;
 
@@ -1078,6 +1151,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
       setState(() {
         imageUrl.text = data["image_url"] ?? "";
+        cloudinaryPublicId.text = data["public_id"] ?? "";
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1102,12 +1176,13 @@ class _AddEventPageState extends State<AddEventPage> {
       Uri.parse("${ApiHelper.baseUrl}/events"),
       headers: await ApiHelper.headers(),
       body: jsonEncode({
-        "name": name.text,
-        "city": city.text,
-        "date": date.text,
-        "club": club.text,
-        "music_type": musicType.text,
-        "image_url": imageUrl.text,
+        "name": name.text.trim(),
+        "city": city.text.trim(),
+        "date": date.text.trim(),
+        "club": club.text.trim(),
+        "music_type": musicType.text.trim(),
+        "image_url": imageUrl.text.trim(),
+        "cloudinary_public_id": cloudinaryPublicId.text.trim(),
       }),
     );
 
@@ -1128,6 +1203,7 @@ class _AddEventPageState extends State<AddEventPage> {
     club.dispose();
     musicType.dispose();
     imageUrl.dispose();
+    cloudinaryPublicId.dispose();
     super.dispose();
   }
 
@@ -1170,6 +1246,7 @@ class _EditEventPageState extends State<EditEventPage> {
   final club = TextEditingController();
   final musicType = TextEditingController();
   final imageUrl = TextEditingController();
+  final cloudinaryPublicId = TextEditingController();
 
   bool uploadingImage = false;
 
@@ -1183,6 +1260,7 @@ class _EditEventPageState extends State<EditEventPage> {
     club.text = widget.event["club"] ?? "";
     musicType.text = widget.event["music_type"] ?? "";
     imageUrl.text = widget.event["image_url"] ?? "";
+    cloudinaryPublicId.text = widget.event["cloudinary_public_id"] ?? "";
   }
 
   bool isEmpty() {
@@ -1241,6 +1319,7 @@ class _EditEventPageState extends State<EditEventPage> {
 
       setState(() {
         imageUrl.text = data["image_url"] ?? "";
+        cloudinaryPublicId.text = data["public_id"] ?? "";
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1265,12 +1344,13 @@ class _EditEventPageState extends State<EditEventPage> {
       Uri.parse("${ApiHelper.baseUrl}/events/${widget.event["id"]}"),
       headers: await ApiHelper.headers(),
       body: jsonEncode({
-        "name": name.text,
-        "city": city.text,
-        "date": date.text,
-        "club": club.text,
-        "music_type": musicType.text,
-        "image_url": imageUrl.text,
+        "name": name.text.trim(),
+        "city": city.text.trim(),
+        "date": date.text.trim(),
+        "club": club.text.trim(),
+        "music_type": musicType.text.trim(),
+        "image_url": imageUrl.text.trim(),
+        "cloudinary_public_id": cloudinaryPublicId.text.trim(),
       }),
     );
 
@@ -1291,6 +1371,7 @@ class _EditEventPageState extends State<EditEventPage> {
     club.dispose();
     musicType.dispose();
     imageUrl.dispose();
+    cloudinaryPublicId.dispose();
     super.dispose();
   }
 
