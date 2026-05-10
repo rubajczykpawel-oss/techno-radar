@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
 /* ================= API HELPER ================= */
 
 class ApiHelper {
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'https://web-production-5db5f.up.railway.app';
 
   static Future<Map<String, String>> headers() async {
     final prefs = await SharedPreferences.getInstance();
