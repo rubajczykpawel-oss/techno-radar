@@ -650,7 +650,7 @@ def import_ticketmaster_events(
             source_url=event_url,
             external_id=external_id,
             is_verified=0,
-            imported_at="2026-05-10",
+            imported_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             user_id=user_id
         )
 
@@ -665,6 +665,8 @@ def import_ticketmaster_events(
         "skipped_count": skipped_count,
         "ticketmaster_results": len(ticketmaster_events)
     }
+
+
 
 # ---------- DELETE ----------
 
