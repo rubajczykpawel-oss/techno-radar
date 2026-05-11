@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 import os
 import cloudinary
 import cloudinary.uploader
+import requests
 from dotenv import load_dotenv 
 from database import Base, engine, get_db
 from models import Event, User, UserEvent
@@ -546,7 +547,124 @@ def import_test_events(
         "skipped_count": skipped_count
     }
 
+@app.post("/admin/import-ticketmaster-events")
+def import_ticketmaster_events(
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not is_admin(user_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Tylko admin może importować eventy"
+        )
 
+    ticketmaster_api_key = os.getenv("TICKETMASTER_API_KEY")
+
+    if not ticketmaster_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Brak TICKETMASTER_API_KEY w zmiennych środowiskowych"
+        )
+
+    url = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+    params = {
+        "apikey": ticketmaster_api_key,
+        "keyword": "techno",
+        "countryCode": "PL",
+        "size": 20,
+        "sort": "date,asc"
+    }
+
+    response = requests.get(url, params=params, timeout=15)
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Błąd Ticketmaster API: {response.status_code} {response.text}"
+        )
+
+    data = response.json()
+
+    embedded = data.get("_embedded", {})
+    ticketmaster_events = embedded.get("events", [])
+
+    imported_count = 0
+    skipped_count = 0
+
+    for item in ticketmaster_events:
+        ticketmaster_id = item.get("id", "")
+
+        if not ticketmaster_id:
+            skipped_count += 1
+            continue
+
+        external_id = f"ticketmaster_{ticketmaster_id}"
+
+        existing_event = (
+            db.query(Event)
+            .filter(Event.external_id == external_id)
+            .first()
+        )
+
+        if existing_event:
+            skipped_count += 1
+            continue
+
+        name = item.get("name", "Ticketmaster event")
+
+        dates = item.get("dates", {})
+        start = dates.get("start", {})
+        local_date = start.get("localDate", "")
+
+        event_url = item.get("url", "")
+
+        images = item.get("images", [])
+        image_url = ""
+
+        if images:
+            image_url = images[0].get("url", "")
+
+        city = ""
+        club = ""
+
+        item_embedded = item.get("_embedded", {})
+        venues = item_embedded.get("venues", [])
+
+        if venues:
+            first_venue = venues[0]
+            club = first_venue.get("name", "")
+
+            city_data = first_venue.get("city", {})
+            city = city_data.get("name", "")
+
+        new_event = Event(
+            name=name,
+            city=city,
+            date=local_date,
+            club=club,
+            music_type="Techno",
+            image_url=image_url,
+            cloudinary_public_id="",
+            source_name="Ticketmaster",
+            source_url=event_url,
+            external_id=external_id,
+            is_verified=0,
+            imported_at="2026-05-10",
+            user_id=user_id
+        )
+
+        db.add(new_event)
+        imported_count += 1
+
+    db.commit()
+
+    return {
+        "message": "Import Ticketmaster zakończony",
+        "imported_count": imported_count,
+        "skipped_count": skipped_count,
+        "ticketmaster_results": len(ticketmaster_events)
+    }
 
 # ---------- DELETE ----------
 
