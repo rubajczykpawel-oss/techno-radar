@@ -193,6 +193,7 @@ def get_public_events(
     events = (
         db.query(Event)
         .filter(Event.date.like(year_text))
+        .filter(Event.is_verified == 1)
         .order_by(Event.date.asc())
         .all()
     )
@@ -447,6 +448,104 @@ def add_event_to_my_list(
     except IntegrityError:
         db.rollback()
         return {"error": "Event already added"}
+    
+@app.post("/admin/import-test-events")
+def import_test_events(
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not is_admin(user_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Tylko admin może importować eventy"
+        )
+
+    test_events = [
+        {
+            "name": "Imported Techno Night Warsaw",
+            "city": "Warszawa",
+            "date": "2026-11-01",
+            "club": "Test Club Warsaw",
+            "music_type": "Techno",
+            "image_url": "",
+            "cloudinary_public_id": "",
+            "source_name": "test_import",
+            "source_url": "https://example.com/events/imported-techno-night-warsaw",
+            "external_id": "test_import_001",
+            "is_verified": 0,
+            "imported_at": "2026-05-10"
+        },
+        {
+            "name": "Imported Hard Techno Krakow",
+            "city": "Kraków",
+            "date": "2026-11-15",
+            "club": "Test Club Krakow",
+            "music_type": "Hard Techno",
+            "image_url": "",
+            "cloudinary_public_id": "",
+            "source_name": "test_import",
+            "source_url": "https://example.com/events/imported-hard-techno-krakow",
+            "external_id": "test_import_002",
+            "is_verified": 0,
+            "imported_at": "2026-05-10"
+        },
+        {
+            "name": "Imported Acid Techno Gdansk",
+            "city": "Gdańsk",
+            "date": "2026-12-01",
+            "club": "Test Club Gdansk",
+            "music_type": "Acid Techno",
+            "image_url": "",
+            "cloudinary_public_id": "",
+            "source_name": "test_import",
+            "source_url": "https://example.com/events/imported-acid-techno-gdansk",
+            "external_id": "test_import_003",
+            "is_verified": 0,
+            "imported_at": "2026-05-10"
+        }
+    ]
+
+    imported_count = 0
+    skipped_count = 0
+
+    for item in test_events:
+        existing_event = (
+            db.query(Event)
+            .filter(Event.external_id == item["external_id"])
+            .first()
+        )
+
+        if existing_event:
+            skipped_count += 1
+            continue
+
+        new_event = Event(
+            name=item["name"],
+            city=item["city"],
+            date=item["date"],
+            club=item["club"],
+            music_type=item["music_type"],
+            image_url=item["image_url"],
+            cloudinary_public_id=item["cloudinary_public_id"],
+            source_name=item["source_name"],
+            source_url=item["source_url"],
+            external_id=item["external_id"],
+            is_verified=item["is_verified"],
+            imported_at=item["imported_at"],
+            user_id=user_id
+        )
+
+        db.add(new_event)
+        imported_count += 1
+
+    db.commit()
+
+    return {
+        "message": "Import testowych eventów zakończony",
+        "imported_count": imported_count,
+        "skipped_count": skipped_count
+    }
+
 
 
 # ---------- DELETE ----------
@@ -551,3 +650,38 @@ def update_event(
     db.refresh(event)
 
     return {"message": "Updated"}
+
+@app.put("/admin/events/{event_id}/verify")
+def verify_imported_event(
+    event_id: int,
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not is_admin(user_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Tylko admin może zatwierdzać eventy"
+        )
+
+    event = db.query(Event).filter(Event.id == event_id).first()
+
+    if not event:
+        raise HTTPException(
+            status_code=404,
+            detail="Event nie istnieje"
+        )
+
+    event.is_verified = 1
+
+    db.commit()
+    db.refresh(event)
+
+    return {
+        "message": "Event został zatwierdzony",
+        "id": event.id,
+        "name": event.name,
+        "is_verified": event.is_verified,
+        "source_name": event.source_name,
+        "source_url": event.source_url,
+        "external_id": event.external_id
+    }
