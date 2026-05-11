@@ -666,6 +666,45 @@ def import_ticketmaster_events(
         "ticketmaster_results": len(ticketmaster_events)
     }
 
+@app.get("/admin/imported-events/pending")
+def get_pending_imported_events(
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not is_admin(user_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Tylko admin może widzieć eventy do zatwierdzenia"
+        )
+
+    events = (
+        db.query(Event)
+        .filter(Event.is_verified == 0)
+        .order_by(Event.date.asc())
+        .all()
+    )
+
+    result = []
+
+    for event in events:
+        result.append({
+            "id": event.id,
+            "name": event.name,
+            "city": event.city,
+            "date": event.date,
+            "club": event.club,
+            "music_type": event.music_type,
+            "image_url": event.image_url,
+            "cloudinary_public_id": event.cloudinary_public_id,
+            "source_name": event.source_name,
+            "source_url": event.source_url,
+            "external_id": event.external_id,
+            "is_verified": event.is_verified,
+            "imported_at": event.imported_at
+        })
+
+    return result
+
 
 
 # ---------- DELETE ----------
