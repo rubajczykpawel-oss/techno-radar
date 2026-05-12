@@ -614,6 +614,15 @@ class _EventListPageState extends State<EventListPage> {
     );
   }
 
+  void goPendingImportedEvents() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PendingImportedEventsPage()),
+    );
+
+    fetchEvents();
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("token");
@@ -741,6 +750,12 @@ class _EventListPageState extends State<EventListPage> {
       appBar: AppBar(
         title: Text(isAdmin ? "Techno Radar Admin" : "Techno Radar"),
         actions: [
+          if (isAdmin)
+            IconButton(
+              tooltip: "Eventy do zatwierdzenia",
+              onPressed: goPendingImportedEvents,
+              icon: const Icon(Icons.fact_check),
+            ),
           IconButton(
             tooltip: "Publiczne eventy",
             onPressed: goPublicEvents,
@@ -1183,6 +1198,11 @@ class _AddEventPageState extends State<AddEventPage> {
         "music_type": musicType.text.trim(),
         "image_url": imageUrl.text.trim(),
         "cloudinary_public_id": cloudinaryPublicId.text.trim(),
+        "source_name": "manual",
+        "source_url": "",
+        "external_id": "",
+        "is_verified": 1,
+        "imported_at": "",
       }),
     );
 
@@ -1351,6 +1371,11 @@ class _EditEventPageState extends State<EditEventPage> {
         "music_type": musicType.text.trim(),
         "image_url": imageUrl.text.trim(),
         "cloudinary_public_id": cloudinaryPublicId.text.trim(),
+        "source_name": widget.event["source_name"] ?? "manual",
+        "source_url": widget.event["source_url"] ?? "",
+        "external_id": widget.event["external_id"] ?? "",
+        "is_verified": widget.event["is_verified"] ?? 1,
+        "imported_at": widget.event["imported_at"] ?? "",
       }),
     );
 
@@ -1519,6 +1544,166 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/* ================= PENDING IMPORTED EVENTS ================= */
+
+class PendingImportedEventsPage extends StatefulWidget {
+  const PendingImportedEventsPage({super.key});
+
+  @override
+  State<PendingImportedEventsPage> createState() =>
+      _PendingImportedEventsPageState();
+}
+
+class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
+  List events = [];
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPendingEvents();
+  }
+
+  Future<void> fetchPendingEvents() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final response = await http.get(
+      Uri.parse("${ApiHelper.baseUrl}/admin/imported-events/pending"),
+      headers: await ApiHelper.headers(),
+    );
+
+    if (!mounted) return;
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        events = data is List ? data : [];
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Błąd pobierania eventów: ${response.body}"),
+        ),
+      );
+    }
+  }
+
+  Future<void> approveEvent(int eventId) async {
+    final response = await http.put(
+      Uri.parse("${ApiHelper.baseUrl}/admin/events/$eventId/verify"),
+      headers: await ApiHelper.headers(),
+    );
+
+    if (!mounted) return;
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Event zatwierdzony")),
+      );
+
+      fetchPendingEvents();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Błąd zatwierdzania: ${response.body}"),
+        ),
+      );
+    }
+  }
+
+  Widget pendingEventCard(Map event) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            eventImage(event["image_url"], height: 160),
+            const SizedBox(height: 12),
+            Text(
+              event["name"] ?? "",
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text("📍 Miasto: ${event["city"] ?? ""}"),
+            Text("📅 Data: ${event["date"] ?? ""}"),
+            Text("🏢 Klub: ${event["club"] ?? ""}"),
+            Text("🎵 Typ: ${event["music_type"] ?? ""}"),
+            const SizedBox(height: 8),
+            Text("Źródło: ${event["source_name"] ?? ""}"),
+            Text(
+              "Link: ${event["source_url"] ?? ""}",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Zaimportowano: ${event["imported_at"] ?? ""}",
+              style: const TextStyle(color: Colors.white54),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => approveEvent(event["id"]),
+                icon: const Icon(Icons.check),
+                label: const Text("Zatwierdź event"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Eventy do zatwierdzenia"),
+        actions: [
+          IconButton(
+            tooltip: "Odśwież",
+            onPressed: fetchPendingEvents,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : events.isEmpty
+              ? const Center(
+                  child: Text(
+                    "Brak eventów do zatwierdzenia",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: (_, index) {
+                    return pendingEventCard(events[index]);
+                  },
+                ),
     );
   }
 }
