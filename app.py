@@ -774,7 +774,6 @@ def import_ticketmaster_events(
                 "apikey": api_key,
                 "keyword": keyword,
                 "countryCode": "PL",
-                "source": "ticketmaster",
                 "locale": "*",
                 "size": 100,
                 "page": page,
