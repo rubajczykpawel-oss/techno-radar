@@ -325,6 +325,20 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isLoggingIn = false;
   bool eyesOpen = false;
+  bool imagesPrecached = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!imagesPrecached) {
+      imagesPrecached = true;
+
+      precacheImage(const AssetImage(AppAssets.loginClosed), context);
+      precacheImage(const AssetImage(AppAssets.loginOpen), context);
+      precacheImage(const AssetImage(AppAssets.electronicBackground), context);
+    }
+  }
 
   Future<void> login() async {
     if (isLoggingIn) return;
@@ -365,7 +379,7 @@ class _LoginPageState extends State<LoginPage> {
           eyesOpen = true;
         });
 
-        await Future.delayed(const Duration(milliseconds: 650));
+        await Future.delayed(const Duration(milliseconds: 1200));
 
         if (!mounted) return;
 
@@ -413,9 +427,11 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Widget loginCharacterImage() {
+  Widget loginCharacterImage(bool isSmallScreen) {
+    final imageHeight = isSmallScreen ? 210.0 : 330.0;
+
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 550),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       child: ClipRRect(
@@ -423,9 +439,10 @@ class _LoginPageState extends State<LoginPage> {
         borderRadius: BorderRadius.circular(18),
         child: Image.asset(
           eyesOpen ? AppAssets.loginOpen : AppAssets.loginClosed,
-          height: 330,
+          height: imageHeight,
           width: double.infinity,
           fit: BoxFit.cover,
+          gaplessPlayback: true,
         ),
       ),
     );
@@ -433,76 +450,96 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 520 || screenHeight < 760;
+
+    final horizontalPadding = isSmallScreen ? 12.0 : 20.0;
+    final panelPadding = isSmallScreen ? 16.0 : 26.0;
+    final titleSize = isSmallScreen ? 24.0 : 30.0;
+    final panelWidth = isSmallScreen ? double.infinity : 460.0;
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: MusicBackground(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: GlassPanel(
-              width: 460,
-              padding: const EdgeInsets.all(26),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  loginCharacterImage(),
-                  const SizedBox(height: 18),
-                  const Text(
-                    "TECHNO RADAR",
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: isSmallScreen ? 10 : 20,
+              ),
+              child: GlassPanel(
+                width: panelWidth,
+                padding: EdgeInsets.all(panelPadding),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    loginCharacterImage(isSmallScreen),
+                    SizedBox(height: isSmallScreen ? 12 : 18),
+                    Text(
+                      "TECHNO RADAR",
+                      style: TextStyle(
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    eyesOpen
-                        ? "Zalogowano. Witaj w radarze."
-                        : "Zaloguj się i odkrywaj eventy techno w całej Polsce",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
+                    SizedBox(height: isSmallScreen ? 6 : 8),
+                    Text(
+                      eyesOpen
+                          ? "Zalogowano. Witaj w radarze."
+                          : "Zaloguj się i odkrywaj eventy techno w całej Polsce",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.75),
+                        fontSize: isSmallScreen ? 13 : 14,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 26),
-                  TextField(
-                    controller: email,
-                    enabled: !isLoggingIn,
-                    decoration: const InputDecoration(
-                      labelText: "Email",
-                      prefixIcon: Icon(Icons.email),
+                    SizedBox(height: isSmallScreen ? 16 : 26),
+                    TextField(
+                      controller: email,
+                      enabled: !isLoggingIn,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: password,
-                    enabled: !isLoggingIn,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Hasło",
-                      prefixIcon: Icon(Icons.lock),
+                    SizedBox(height: isSmallScreen ? 10 : 14),
+                    TextField(
+                      controller: password,
+                      enabled: !isLoggingIn,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Hasło",
+                        prefixIcon: Icon(Icons.lock),
+                      ),
+                      onSubmitted: (_) => login(),
                     ),
-                    onSubmitted: (_) => login(),
-                  ),
-                  const SizedBox(height: 22),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: isLoggingIn ? null : login,
-                      child: isLoggingIn
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text("Zaloguj"),
+                    SizedBox(height: isSmallScreen ? 16 : 22),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isLoggingIn ? null : login,
+                        child: isLoggingIn
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text("Zaloguj"),
+                      ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: isLoggingIn ? null : goRegister,
-                    child: const Text("Nie masz konta? Zarejestruj się"),
-                  ),
-                ],
+                    SizedBox(height: isSmallScreen ? 4 : 8),
+                    TextButton(
+                      onPressed: isLoggingIn ? null : goRegister,
+                      child: const Text("Nie masz konta? Zarejestruj się"),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -563,68 +600,77 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 520;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Rejestracja"),
       ),
       body: MusicBackground(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: GlassPanel(
-              width: 430,
-              padding: const EdgeInsets.all(26),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.asset(
-                      AppAssets.loginClosed,
-                      height: 210,
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(isSmallScreen ? 12 : 20),
+              child: GlassPanel(
+                width: isSmallScreen ? double.infinity : 430,
+                padding: EdgeInsets.all(isSmallScreen ? 16 : 26),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Image.asset(
+                        AppAssets.loginClosed,
+                        height: isSmallScreen ? 160 : 210,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 12 : 18),
+                    Text(
+                      "Utwórz konto",
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 22 : 25,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 16 : 24),
+                    TextField(
+                      controller: username,
+                      decoration: const InputDecoration(
+                        labelText: "Nazwa użytkownika",
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 10 : 14),
+                    TextField(
+                      controller: email,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email),
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 10 : 14),
+                    TextField(
+                      controller: password,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Hasło",
+                        prefixIcon: Icon(Icons.lock),
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 16 : 22),
+                    SizedBox(
                       width: double.infinity,
-                      fit: BoxFit.cover,
+                      child: ElevatedButton(
+                        onPressed: register,
+                        child: const Text("Zarejestruj"),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  const Text(
-                    "Utwórz konto",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: username,
-                    decoration: const InputDecoration(
-                      labelText: "Nazwa użytkownika",
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: email,
-                    decoration: const InputDecoration(
-                      labelText: "Email",
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: password,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Hasło",
-                      prefixIcon: Icon(Icons.lock),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: register,
-                      child: const Text("Zarejestruj"),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -818,9 +864,14 @@ class _EventListPageState extends State<EventListPage> {
     if (type == "Industrial Techno") return Colors.blueGrey;
     if (type == "House") return Colors.pink;
     if (type == "Tech House") return Colors.teal;
+    if (type == "Deep House") return Colors.purpleAccent;
     if (type == "Trance") return Colors.blue;
+    if (type == "Psytrance") return Colors.lightBlueAccent;
     if (type == "Drum and Bass") return Colors.lime;
     if (type == "Dubstep") return Colors.indigo;
+    if (type == "EDM") return Colors.cyan;
+    if (type == "Rave") return Colors.deepOrange;
+    if (type == "Electronic") return Colors.deepPurpleAccent;
     return Colors.deepPurple;
   }
 
@@ -1120,22 +1171,30 @@ class EventDetailsPage extends StatelessWidget {
 
     final uri = Uri.tryParse(sourceUrl);
 
-    if (uri == null) {
+    if (uri == null || !uri.hasScheme) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Niepoprawny link do biletów")),
+        SnackBar(content: Text("Niepoprawny link do biletów: $sourceUrl")),
       );
       return;
     }
 
-    final opened = await launchUrl(
-      uri,
-      mode: LaunchMode.platformDefault,
-      webOnlyWindowName: "_blank",
-    );
+    try {
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+        webOnlyWindowName: "_blank",
+      );
 
-    if (!opened && context.mounted) {
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Nie udało się otworzyć linku")),
+        );
+      }
+    } catch (error) {
+      if (!context.mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Nie udało się otworzyć linku")),
+        SnackBar(content: Text("Błąd otwierania linku: $error")),
       );
     }
   }
