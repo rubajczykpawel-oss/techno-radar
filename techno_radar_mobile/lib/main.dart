@@ -1561,6 +1561,7 @@ class PendingImportedEventsPage extends StatefulWidget {
 class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
   List events = [];
   bool isLoading = false;
+  bool isImporting = false;
 
   @override
   void initState() {
@@ -1595,6 +1596,59 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Błąd pobierania eventów: ${response.body}"),
+        ),
+      );
+    }
+  }
+
+  Future<void> importFromTicketmaster() async {
+    if (isImporting) return;
+
+    setState(() {
+      isImporting = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse("${ApiHelper.baseUrl}/admin/import-ticketmaster-events"),
+        headers: await ApiHelper.headers(),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        isImporting = false;
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Import zakończony. Dodano: ${data["imported_count"]}, pominięto: ${data["skipped_count"]}",
+            ),
+          ),
+        );
+
+        fetchPendingEvents();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Błąd importu: ${response.body}"),
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        isImporting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Błąd połączenia podczas importu: $error"),
         ),
       );
     }
@@ -1683,8 +1737,19 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
         title: const Text("Eventy do zatwierdzenia"),
         actions: [
           IconButton(
+            tooltip: "Importuj z Ticketmaster",
+            onPressed: isImporting ? null : importFromTicketmaster,
+            icon: isImporting
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.cloud_download),
+          ),
+          IconButton(
             tooltip: "Odśwież",
-            onPressed: fetchPendingEvents,
+            onPressed: isLoading ? null : fetchPendingEvents,
             icon: const Icon(Icons.refresh),
           ),
         ],
