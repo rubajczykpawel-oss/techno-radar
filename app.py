@@ -10,13 +10,15 @@ import os
 import cloudinary
 import cloudinary.uploader
 import requests
-import random
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
+
 from database import Base, engine, get_db
 from models import Event, User, UserEvent
 from schemas import EventCreate, UserCreate, UserLogin
 
+
 load_dotenv()
+
 
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -25,17 +27,16 @@ cloudinary.config(
     secure=True
 )
 
+
 app = FastAPI()
+
 
 # Tworzymy tabele w bazie danych na podstawie models.py
 Base.metadata.create_all(bind=engine)
 
 
-
 # ---------- CORS ----------
-# UWAGA:
-# allow_origins=["*"] jest wygodne do nauki i lokalnego testowania.
-# Przed produkcją najlepiej zmienić "*" na konkretne adresy frontendu.
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -50,7 +51,7 @@ app.add_middleware(
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 if not SECRET_KEY:
-    raise ValueError("Brak SECRET_KEY w pliku.env")
+    raise ValueError("Brak SECRET_KEY w pliku .env")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -58,6 +59,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 bearer_scheme = HTTPBearer(auto_error=False)
+
+
+# ---------- TECHNO / TICKETMASTER CONFIG ----------
+
 TECHNO_BANNER_URLS = [
     "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592421/aditya-chinchure-ZhQCZjr9fHo-unsplash_unfcpl.jpg",
     "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592421/josh-olalde-V1O0gBfbrO8-unsplash_ikjqu5.jpg",
@@ -67,6 +72,7 @@ TECHNO_BANNER_URLS = [
     "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592412/artem-bryzgalov-4EQVWx5tvp0-unsplash_1_fbkawl.jpg"
 ]
 
+
 TECHNO_KEYWORDS = [
     "techno",
     "hard techno",
@@ -74,12 +80,48 @@ TECHNO_KEYWORDS = [
     "industrial techno",
     "minimal techno",
     "melodic techno",
-    "electronic"
+    "electronic",
+    "dance",
+    "edm",
+    "house",
+    "tech house",
+    "deep house",
+    "trance",
+    "psytrance",
+    "drum and bass",
+    "dnb",
+    "dubstep",
+    "rave"
 ]
 
 
-def get_random_banner_url():
-    return random.choice(TECHNO_BANNER_URLS)
+TICKETMASTER_SEARCH_KEYWORDS = [
+    "techno",
+    "hard techno",
+    "acid techno",
+    "industrial techno",
+    "minimal techno",
+    "melodic techno",
+    "electronic",
+    "dance",
+    "edm",
+    "house",
+    "tech house",
+    "deep house",
+    "trance",
+    "psytrance",
+    "drum and bass",
+    "dnb",
+    "dubstep",
+    "rave"
+]
+
+
+def get_banner_url_by_index(index: int):
+    if not TECHNO_BANNER_URLS:
+        return ""
+
+    return TECHNO_BANNER_URLS[index % len(TECHNO_BANNER_URLS)]
 
 
 def build_ticketmaster_search_text(item: dict):
@@ -112,14 +154,47 @@ def is_electronic_event(search_text: str):
 def detect_music_type(search_text: str):
     text = search_text.lower()
 
-    if "acid" in text:
+    if "acid techno" in text or "acid" in text:
         return "Acid Techno"
+
     if "hard techno" in text:
         return "Hard Techno"
-    if "industrial" in text:
+
+    if "industrial techno" in text or "industrial" in text:
         return "Industrial Techno"
-    if "minimal" in text:
+
+    if "minimal techno" in text or "minimal" in text:
         return "Minimal"
+
+    if "tech house" in text:
+        return "Tech House"
+
+    if "deep house" in text:
+        return "Deep House"
+
+    if "house" in text:
+        return "House"
+
+    if "psytrance" in text:
+        return "Psytrance"
+
+    if "trance" in text:
+        return "Trance"
+
+    if "drum and bass" in text or "dnb" in text:
+        return "Drum and Bass"
+
+    if "dubstep" in text:
+        return "Dubstep"
+
+    if "edm" in text:
+        return "EDM"
+
+    if "rave" in text:
+        return "Rave"
+
+    if "electronic" in text or "dance" in text:
+        return "Electronic"
 
     return "Techno"
 
@@ -157,7 +232,7 @@ def get_current_user(
 ):
     if not credentials:
         raise HTTPException(status_code=401, detail="Brak tokena")
-    
+
     token = credentials.credentials
 
     try:
@@ -165,13 +240,19 @@ def get_current_user(
         user_id = payload.get("user_id")
 
         if not user_id:
-            raise HTTPException(status_code=401, detail="Token niepoprawny lub wygasł")
-        
+            raise HTTPException(
+                status_code=401,
+                detail="Token niepoprawny lub wygasł"
+            )
+
         return user_id
-    
+
     except JWTError:
-        raise HTTPException(status_code=401, detail="Token niepoprawny lub wygasł")
-    
+        raise HTTPException(
+            status_code=401,
+            detail="Token niepoprawny lub wygasł"
+        )
+
 
 def is_admin(user_id: int, db: Session):
     user = db.query(User).filter(User.id == user_id).first()
@@ -207,8 +288,11 @@ def get_events(
 
     offset = (page - 1) * limit
 
-    query = (db.query(Event).filter(Event.source_name == "Ticketmaster").filter(Event.is_verified == 1)
-)
+    query = (
+        db.query(Event)
+        .filter(Event.source_name == "Ticketmaster")
+        .filter(Event.is_verified == 1)
+    )
 
     if search.strip() != "":
         search_text = f"%{search}%"
@@ -244,10 +328,11 @@ def get_events(
             "source_url": event.source_url,
             "external_id": event.external_id,
             "is_verified": event.is_verified,
-            "imported_at": event.imported_at    
+            "imported_at": event.imported_at
         })
 
     return result
+
 
 @app.get("/public-events")
 def get_public_events(
@@ -286,20 +371,21 @@ def get_public_events(
 
     return result
 
+
 @app.get("/my-events")
 def get_my_events(
     user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     saved_events = (
-    db.query(Event)
-    .join(UserEvent, Event.id == UserEvent.event_id)
-    .filter(UserEvent.user_id == user_id)
-    .filter(Event.source_name == "Ticketmaster")
-    .filter(Event.is_verified == 1)
-    .order_by(Event.date.asc())
-    .all()
-)
+        db.query(Event)
+        .join(UserEvent, Event.id == UserEvent.event_id)
+        .filter(UserEvent.user_id == user_id)
+        .filter(Event.source_name == "Ticketmaster")
+        .filter(Event.is_verified == 1)
+        .order_by(Event.date.asc())
+        .all()
+    )
 
     result = []
 
@@ -366,6 +452,7 @@ def upload_image(file: UploadFile = File(...)):
                 status_code=500,
                 detail="Cloudinary nie zwróciło linku do zdjęcia"
             )
+
         if not public_id:
             raise HTTPException(
                 status_code=500,
@@ -396,42 +483,43 @@ def create_event(
         return {"error": "Only admin can create events"}
 
     new_event = Event(
-    name=event.name,
-    city=event.city,
-    date=event.date,
-    club=event.club,
-    music_type=event.music_type,
-    image_url=event.image_url,
-    cloudinary_public_id=event.cloudinary_public_id,
-    source_name=event.source_name,
-    source_url=event.source_url,
-    external_id=event.external_id,
-    is_verified=event.is_verified,
-    imported_at=event.imported_at,
-    user_id=user_id
-)
+        name=event.name,
+        city=event.city,
+        date=event.date,
+        club=event.club,
+        music_type=event.music_type,
+        image_url=event.image_url,
+        cloudinary_public_id=event.cloudinary_public_id,
+        source_name=event.source_name,
+        source_url=event.source_url,
+        external_id=event.external_id,
+        is_verified=event.is_verified,
+        imported_at=event.imported_at,
+        user_id=user_id
+    )
 
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
 
     return {
-    "id": new_event.id,
-    "name": new_event.name,
-    "city": new_event.city,
-    "date": new_event.date,
-    "club": new_event.club,
-    "music_type": new_event.music_type,
-    "image_url": new_event.image_url,
-    "cloudinary_public_id": new_event.cloudinary_public_id,
-    "source_name": new_event.source_name,
-    "source_url": new_event.source_url,
-    "external_id": new_event.external_id,
-    "is_verified": new_event.is_verified,
-    "imported_at": new_event.imported_at
-}
-    
+        "id": new_event.id,
+        "name": new_event.name,
+        "city": new_event.city,
+        "date": new_event.date,
+        "club": new_event.club,
+        "music_type": new_event.music_type,
+        "image_url": new_event.image_url,
+        "cloudinary_public_id": new_event.cloudinary_public_id,
+        "source_name": new_event.source_name,
+        "source_url": new_event.source_url,
+        "external_id": new_event.external_id,
+        "is_verified": new_event.is_verified,
+        "imported_at": new_event.imported_at
+    }
 
+
+# ---------- USERS ----------
 
 @app.post("/register")
 def register_user(
@@ -491,13 +579,21 @@ def login_user(
     return {"error": "Invalid email or password"}
 
 
+# ---------- MY EVENTS ----------
+
 @app.post("/my-events/{event_id}")
 def add_event_to_my_list(
     event_id: int,
     user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    event = db.query(Event).filter(Event.id == event_id).first()
+    event = (
+        db.query(Event)
+        .filter(Event.id == event_id)
+        .filter(Event.source_name == "Ticketmaster")
+        .filter(Event.is_verified == 1)
+        .first()
+    )
 
     if not event:
         return {"error": "Event not found"}
@@ -516,7 +612,31 @@ def add_event_to_my_list(
     except IntegrityError:
         db.rollback()
         return {"error": "Event already added"}
-    
+
+
+@app.delete("/my-events/{event_id}")
+def remove_event_from_my_list(
+    event_id: int,
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_event = (
+        db.query(UserEvent)
+        .filter(UserEvent.user_id == user_id, UserEvent.event_id == event_id)
+        .first()
+    )
+
+    if not user_event:
+        return {"error": "Event not found on your list"}
+
+    db.delete(user_event)
+    db.commit()
+
+    return {"message": "Event removed from your list"}
+
+
+# ---------- ADMIN IMPORT TEST EVENTS ----------
+
 @app.post("/admin/import-test-events")
 def import_test_events(
     user_id: int = Depends(get_current_user),
@@ -614,8 +734,12 @@ def import_test_events(
         "skipped_count": skipped_count
     }
 
+
+# ---------- ADMIN IMPORT TICKETMASTER EVENTS ----------
+
 @app.post("/admin/import-ticketmaster-events")
 def import_ticketmaster_events(
+    year: int = Query(default=2026),
     user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -635,20 +759,14 @@ def import_ticketmaster_events(
 
     url = "https://app.ticketmaster.com/discovery/v2/events.json"
 
-    search_keywords = [
-        "techno",
-        "hard techno",
-        "acid techno",
-        "industrial techno",
-        "minimal techno",
-        "melodic techno",
-        "electronic"
-    ]
+    start_date_time = f"{year}-01-01T00:00:00Z"
+    end_date_time = f"{year}-12-31T23:59:59Z"
 
     imported_count = 0
     skipped_count = 0
+    banner_index = 0
 
-    for keyword in search_keywords:
+    for keyword in TICKETMASTER_SEARCH_KEYWORDS:
         page = 0
 
         while True:
@@ -656,15 +774,19 @@ def import_ticketmaster_events(
                 "apikey": api_key,
                 "keyword": keyword,
                 "countryCode": "PL",
+                "source": "ticketmaster",
                 "locale": "*",
                 "size": 100,
                 "page": page,
-                "sort": "date,asc"
+                "sort": "date,asc",
+                "startDateTime": start_date_time,
+                "endDateTime": end_date_time
             }
 
             response = requests.get(url, params=params, timeout=30)
 
             if response.status_code != 200:
+                skipped_count += 1
                 break
 
             data = response.json()
@@ -701,6 +823,10 @@ def import_ticketmaster_events(
 
                 name = item.get("name", "").strip()
 
+                if not name:
+                    skipped_count += 1
+                    continue
+
                 start_data = item.get("dates", {}).get("start", {})
                 local_date = start_data.get("localDate", "")
 
@@ -716,8 +842,8 @@ def import_ticketmaster_events(
 
                 source_url = item.get("url", "")
 
-                # TU specjalnie ustawiamy losowy banner zamiast zdjęcia z Ticketmastera
-                image_url = get_random_banner_url()
+                image_url = get_banner_url_by_index(banner_index)
+                banner_index += 1
 
                 music_type = detect_music_type(search_text)
 
@@ -740,6 +866,8 @@ def import_ticketmaster_events(
                 db.add(new_event)
                 imported_count += 1
 
+            db.commit()
+
             page_info = data.get("page", {})
             current_page = page_info.get("number", 0)
             total_pages = page_info.get("totalPages", 0)
@@ -749,16 +877,17 @@ def import_ticketmaster_events(
 
             page += 1
 
-    db.commit()
-
     return {
-        "message": "Import eventów z Ticketmaster zakończony",
+        "message": "Import eventów elektronicznych z Ticketmaster zakończony",
+        "year": year,
         "imported_count": imported_count,
         "skipped_count": skipped_count
     }
 
+
 @app.post("/admin/update-ticketmaster-banners")
 def update_ticketmaster_banners(
+    year: int = Query(default=2026),
     user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -768,16 +897,20 @@ def update_ticketmaster_banners(
             detail="Tylko admin może aktualizować bannery eventów"
         )
 
+    year_text = f"{year}-%"
+
     events = (
         db.query(Event)
         .filter(Event.source_name == "Ticketmaster")
+        .filter(Event.date.like(year_text))
+        .order_by(Event.date.asc(), Event.id.asc())
         .all()
     )
 
     updated_count = 0
 
-    for event in events:
-        event.image_url = get_random_banner_url()
+    for index, event in enumerate(events):
+        event.image_url = get_banner_url_by_index(index)
         event.cloudinary_public_id = ""
         updated_count += 1
 
@@ -785,8 +918,10 @@ def update_ticketmaster_banners(
 
     return {
         "message": "Bannery eventów Ticketmaster zostały zaktualizowane",
+        "year": year,
         "updated_count": updated_count
     }
+
 
 @app.get("/admin/imported-events/pending")
 def get_pending_imported_events(
@@ -828,7 +963,6 @@ def get_pending_imported_events(
     return result
 
 
-
 # ---------- DELETE ----------
 
 @app.delete("/events/{event_id}")
@@ -842,12 +976,12 @@ def delete_event(
 
     event = (
         db.query(Event)
-        .filter(Event.id == event_id, Event.user_id == user_id)
+        .filter(Event.id == event_id)
         .first()
     )
 
     if not event:
-        return {"error": "Event not found or access denied"}
+        return {"error": "Event not found"}
 
     if event.cloudinary_public_id:
         try:
@@ -858,31 +992,19 @@ def delete_event(
                 detail=f"Nie udało się usunąć zdjęcia z Cloudinary: {str(error)}"
             )
 
+    related_user_events = (
+        db.query(UserEvent)
+        .filter(UserEvent.event_id == event_id)
+        .all()
+    )
+
+    for user_event in related_user_events:
+        db.delete(user_event)
+
     db.delete(event)
     db.commit()
 
     return {"message": "Deleted"}
-
-
-@app.delete("/my-events/{event_id}")
-def remove_event_from_my_list(
-    event_id: int,
-    user_id: int = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    user_event = (
-        db.query(UserEvent)
-        .filter(UserEvent.user_id == user_id, UserEvent.event_id == event_id)
-        .first()
-    )
-
-    if not user_event:
-        return {"error": "Event not found on your list"}
-
-    db.delete(user_event)
-    db.commit()
-
-    return {"message": "Event removed from your list"}
 
 
 # ---------- UPDATE ----------
@@ -899,21 +1021,12 @@ def update_event(
 
     event = (
         db.query(Event)
-        .filter(Event.id == event_id, Event.user_id == user_id)
+        .filter(Event.id == event_id)
         .first()
     )
 
     if not event:
-        return {"error": "Event not found or access denied"}
-
-    old_image_url = event.image_url or ""
-
-    if old_image_url and old_image_url != updated_event.image_url:
-        old_filename = old_image_url.split("/")[-1]
-        old_file_path = f"uploads/{old_filename}"
-
-        if os.path.exists(old_file_path):
-            os.remove(old_file_path)
+        return {"error": "Event not found"}
 
     event.name = updated_event.name
     event.city = updated_event.city
@@ -927,10 +1040,12 @@ def update_event(
     event.external_id = updated_event.external_id
     event.is_verified = updated_event.is_verified
     event.imported_at = updated_event.imported_at
+
     db.commit()
     db.refresh(event)
 
     return {"message": "Updated"}
+
 
 @app.put("/admin/events/{event_id}/verify")
 def verify_imported_event(
