@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1090,9 +1091,59 @@ class EventDetailsPage extends StatelessWidget {
     );
   }
 
+  Future<void> addToMyList(BuildContext context) async {
+    final response = await http.post(
+      Uri.parse("${ApiHelper.baseUrl}/my-events/${event["id"]}"),
+      headers: await ApiHelper.headers(),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(data["message"] ?? data["error"] ?? "Gotowe"),
+      ),
+    );
+  }
+
+  Future<void> openTicketLink(BuildContext context) async {
+    final sourceUrl = (event["source_url"] ?? "").toString().trim();
+
+    if (sourceUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Brak linku do biletów")),
+      );
+      return;
+    }
+
+    final uri = Uri.tryParse(sourceUrl);
+
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Niepoprawny link do biletów")),
+      );
+      return;
+    }
+
+    final opened = await launchUrl(
+      uri,
+      mode: LaunchMode.platformDefault,
+      webOnlyWindowName: "_blank",
+    );
+
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Nie udało się otworzyć linku")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final musicType = event["music_type"] ?? "";
+    final sourceUrl = (event["source_url"] ?? "").toString().trim();
 
     return Scaffold(
       appBar: AppBar(
@@ -1101,7 +1152,7 @@ class EventDetailsPage extends StatelessWidget {
       body: MusicBackground(
         child: Center(
           child: Container(
-            width: 520,
+            width: 560,
             padding: const EdgeInsets.all(20),
             child: ListView(
               children: [
@@ -1109,7 +1160,7 @@ class EventDetailsPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      eventImage(event["image_url"], height: 250),
+                      eventImage(event["image_url"], height: 280),
                       const SizedBox(height: 18),
                       Text(
                         event["name"] ?? "",
@@ -1131,7 +1182,7 @@ class EventDetailsPage extends StatelessWidget {
                         Icons.calendar_month,
                       ),
                       detailRow(
-                        "Klub",
+                        "Klub / miejsce",
                         event["club"] ?? "",
                         Icons.apartment,
                       ),
@@ -1139,6 +1190,32 @@ class EventDetailsPage extends StatelessWidget {
                         "Typ muzyki",
                         musicType,
                         Icons.music_note,
+                      ),
+                      if (sourceUrl.isNotEmpty)
+                        detailRow(
+                          "Źródło",
+                          "Ticketmaster",
+                          Icons.confirmation_number,
+                        ),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => addToMyList(context),
+                          icon: const Icon(Icons.favorite),
+                          label: const Text("Dodaj do moich eventów"),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: sourceUrl.isEmpty
+                              ? null
+                              : () => openTicketLink(context),
+                          icon: const Icon(Icons.open_in_new),
+                          label: const Text("Kup / zobacz bilety"),
+                        ),
                       ),
                       if (isAdmin) const SizedBox(height: 20),
                       if (isAdmin)
@@ -1235,9 +1312,14 @@ class EventForm extends StatelessWidget {
       "Industrial Techno",
       "House",
       "Tech House",
+      "Deep House",
       "Trance",
+      "Psytrance",
       "Drum and Bass",
       "Dubstep",
+      "EDM",
+      "Rave",
+      "Electronic",
     ];
 
     String? selectedMusicType;
@@ -1741,27 +1823,46 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
     );
   }
 
+  void goDetails(Map event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventDetailsPage(
+          event: event,
+          isAdmin: false,
+          onDelete: () async {},
+          onEdit: () async {},
+        ),
+      ),
+    );
+  }
+
   Widget publicEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: Colors.black.withOpacity(0.72),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: eventImage(event["image_url"], height: 190),
-          ),
-          ListTile(
-            leading: const Icon(Icons.public),
-            title: Text(event["name"] ?? ""),
-            subtitle: Text("${event["city"] ?? ""} • ${event["date"] ?? ""}"),
-            trailing: ElevatedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text("Dodaj"),
-              onPressed: () => addToMyList(event["id"]),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => goDetails(event),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: eventImage(event["image_url"], height: 190),
             ),
-          ),
-        ],
+            ListTile(
+              leading: const Icon(Icons.public),
+              title: Text(event["name"] ?? ""),
+              subtitle:
+                  Text("${event["city"] ?? ""} • ${event["date"] ?? ""}"),
+              trailing: ElevatedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text("Dodaj"),
+                onPressed: () => addToMyList(event["id"]),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2102,27 +2203,48 @@ class _MyEventsPageState extends State<MyEventsPage> {
     fetchMyEvents();
   }
 
+  void goDetails(Map event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventDetailsPage(
+          event: event,
+          isAdmin: false,
+          onDelete: () async {},
+          onEdit: () async {},
+        ),
+      ),
+    ).then((_) {
+      fetchMyEvents();
+    });
+  }
+
   Widget myEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: Colors.black.withOpacity(0.72),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: eventImage(event["image_url"], height: 190),
-          ),
-          ListTile(
-            leading: const Icon(Icons.favorite, color: Colors.red),
-            title: Text(event["name"] ?? ""),
-            subtitle: Text("${event["city"] ?? ""} • ${event["date"] ?? ""}"),
-            trailing: ElevatedButton.icon(
-              icon: const Icon(Icons.delete),
-              label: const Text("Usuń"),
-              onPressed: () => removeFromMyList(event["id"]),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => goDetails(event),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: eventImage(event["image_url"], height: 190),
             ),
-          ),
-        ],
+            ListTile(
+              leading: const Icon(Icons.favorite, color: Colors.red),
+              title: Text(event["name"] ?? ""),
+              subtitle:
+                  Text("${event["city"] ?? ""} • ${event["date"] ?? ""}"),
+              trailing: ElevatedButton.icon(
+                icon: const Icon(Icons.delete),
+                label: const Text("Usuń"),
+                onPressed: () => removeFromMyList(event["id"]),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
