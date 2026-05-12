@@ -54,9 +54,36 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
         primaryColor: Colors.deepPurple,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.black.withOpacity(0.85),
+          elevation: 0,
+          centerTitle: false,
+        ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
           brightness: Brightness.dark,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.black.withOpacity(0.35),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.20)),
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderSide: BorderSide(color: Colors.deepPurple, width: 1.5),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.black.withOpacity(0.72),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          elevation: 6,
         ),
       ),
       home: isLoggedIn ? const EventListPage() : const LoginPage(),
@@ -67,14 +94,11 @@ class _MyAppState extends State<MyApp> {
 /* ================= API HELPER ================= */
 
 class ApiHelper {
-  // Backend lokalny — używany podczas pracy na komputerze z uruchomionym FastAPI.
   static const String localBaseUrl = 'http://127.0.0.1:8000';
 
-  // Backend produkcyjny — publiczny backend uruchomiony na Railway.
-  static const String prodBaseUrl = 'https://web-production-5db5f.up.railway.app';
+  static const String prodBaseUrl =
+      'https://web-production-5db5f.up.railway.app';
 
-  // Aktualnie używany backend.
-  // Na produkcji używamy Railway.
   static const String baseUrl = prodBaseUrl;
 
   static Future<Map<String, String>> headers() async {
@@ -93,37 +117,191 @@ class ApiHelper {
   }
 }
 
+/* ================= ASSETS ================= */
+
+class AppAssets {
+  static const String loginClosed = 'assets/images/login_closed.png';
+  static const String loginOpen = 'assets/images/login_open.png';
+  static const String electronicBackground =
+      'assets/images/electronic_background.png';
+}
+
+/* ================= COMMON UI HELPERS ================= */
+
+class MusicBackground extends StatelessWidget {
+  final Widget child;
+
+  const MusicBackground({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            AppAssets.electronicBackground,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withOpacity(0.78),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+}
+
+class GlassPanel extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double? width;
+
+  const GlassPanel({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.58),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.12),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.22),
+            blurRadius: 24,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
 /* ================= IMAGE HELPER ================= */
 
-Widget eventImage(String? imageUrl, {double height = 160}) {
-  if (imageUrl == null || imageUrl.trim().isEmpty) {
+Widget eventImage(String? imageUrl, {double height = 190}) {
+  final normalizedUrl = imageUrl?.trim() ?? "";
+
+  if (normalizedUrl.isEmpty) {
     return Container(
       height: height,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey[850],
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.black.withOpacity(0.78),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.deepPurple.withOpacity(0.45),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.18),
+            blurRadius: 18,
+          ),
+        ],
       ),
-      child: const Center(
-        child: Icon(Icons.image, size: 50, color: Colors.white38),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.deepPurple.withOpacity(0.35),
+                    Colors.black.withOpacity(0.80),
+                    Colors.blueAccent.withOpacity(0.20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.graphic_eq,
+                  size: 58,
+                  color: Colors.deepPurpleAccent,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  "Brak zdjęcia z Ticketmastera",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  "Techno Radar",
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontSize: 12,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  return ClipRRect(
-    borderRadius: BorderRadius.circular(14),
+  return Container(
+    height: height,
+    width: double.infinity,
+    decoration: BoxDecoration(
+      color: Colors.black,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white10),
+    ),
+    clipBehavior: Clip.antiAlias,
     child: Image.network(
-      imageUrl,
-      height: height,
-      width: double.infinity,
-      fit: BoxFit.cover,
+      normalizedUrl,
+      fit: BoxFit.fill,
+      alignment: Alignment.center,
       errorBuilder: (context, error, stackTrace) {
         return Container(
-          height: height,
-          width: double.infinity,
-          color: Colors.grey[850],
+          color: Colors.black.withOpacity(0.78),
           child: const Center(
-            child: Text("Nie udało się wczytać zdjęcia"),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.music_note,
+                  size: 56,
+                  color: Colors.deepPurpleAccent,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  "Nie udało się wczytać zdjęcia",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -186,7 +364,7 @@ class _LoginPageState extends State<LoginPage> {
           eyesOpen = true;
         });
 
-        await Future.delayed(const Duration(milliseconds: 850));
+        await Future.delayed(const Duration(milliseconds: 650));
 
         if (!mounted) return;
 
@@ -239,13 +417,15 @@ class _LoginPageState extends State<LoginPage> {
       duration: const Duration(milliseconds: 450),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
-      child: Image.asset(
-        eyesOpen
-            ? "assets/images/login_open.png"
-            : "assets/images/login_closed.png",
+      child: ClipRRect(
         key: ValueKey<bool>(eyesOpen),
-        height: 170,
-        fit: BoxFit.contain,
+        borderRadius: BorderRadius.circular(18),
+        child: Image.asset(
+          eyesOpen ? AppAssets.loginOpen : AppAssets.loginClosed,
+          height: 330,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
@@ -253,86 +433,77 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(26),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.deepPurple),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.deepPurple.withOpacity(0.35),
-                blurRadius: 20,
-              )
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              loginCharacterImage(),
-              const SizedBox(height: 12),
-              const Text(
-                "TECHNO RADAR",
-                style: TextStyle(
-                  fontSize: 27,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                ),
+      body: MusicBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: GlassPanel(
+              width: 460,
+              padding: const EdgeInsets.all(26),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  loginCharacterImage(),
+                  const SizedBox(height: 18),
+                  const Text(
+                    "TECHNO RADAR",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    eyesOpen
+                        ? "Zalogowano. Witaj w radarze."
+                        : "Zaloguj się i odkrywaj eventy techno w całej Polsce",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  TextField(
+                    controller: email,
+                    enabled: !isLoggingIn,
+                    decoration: const InputDecoration(
+                      labelText: "Email",
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: password,
+                    enabled: !isLoggingIn,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Hasło",
+                      prefixIcon: Icon(Icons.lock),
+                    ),
+                    onSubmitted: (_) => login(),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoggingIn ? null : login,
+                      child: isLoggingIn
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text("Zaloguj"),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: isLoggingIn ? null : goRegister,
+                    child: const Text("Nie masz konta? Zarejestruj się"),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                eyesOpen
-                    ? "Zalogowano. Witaj w radarze."
-                    : "Zaloguj się, żeby wejść do świata eventów.",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: email,
-                enabled: !isLoggingIn,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: password,
-                enabled: !isLoggingIn,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Hasło",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-                onSubmitted: (_) => login(),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: isLoggingIn ? null : login,
-                  child: isLoggingIn
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text("Zaloguj"),
-                ),
-              ),
-              TextButton(
-                onPressed: isLoggingIn ? null : goRegister,
-                child: const Text("Nie masz konta? Zarejestruj się"),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -395,64 +566,66 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(
         title: const Text("Rejestracja"),
       ),
-      body: Center(
-        child: Container(
-          width: 380,
-          padding: const EdgeInsets.all(26),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(22),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                "assets/images/login_closed.png",
-                height: 130,
-                fit: BoxFit.contain,
+      body: MusicBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: GlassPanel(
+              width: 430,
+              padding: const EdgeInsets.all(26),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.asset(
+                      AppAssets.loginClosed,
+                      height: 210,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    "Utwórz konto",
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: username,
+                    decoration: const InputDecoration(
+                      labelText: "Nazwa użytkownika",
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: email,
+                    decoration: const InputDecoration(
+                      labelText: "Email",
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: password,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Hasło",
+                      prefixIcon: Icon(Icons.lock),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: register,
+                      child: const Text("Zarejestruj"),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 14),
-              const Text(
-                "Utwórz konto",
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                controller: username,
-                decoration: const InputDecoration(
-                  labelText: "Nazwa użytkownika",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: email,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: password,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Hasło",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: register,
-                  child: const Text("Zarejestruj"),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -642,12 +815,18 @@ class _EventListPageState extends State<EventListPage> {
     if (type == "Acid Techno") return Colors.green;
     if (type == "Minimal") return Colors.orange;
     if (type == "Industrial Techno") return Colors.blueGrey;
+    if (type == "House") return Colors.pink;
+    if (type == "Tech House") return Colors.teal;
+    if (type == "Trance") return Colors.blue;
+    if (type == "Drum and Bass") return Colors.lime;
+    if (type == "Dubstep") return Colors.indigo;
     return Colors.deepPurple;
   }
 
   Widget eventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Colors.black.withOpacity(0.72),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -660,7 +839,7 @@ class _EventListPageState extends State<EventListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              eventImage(event["image_url"], height: 170),
+              eventImage(event["image_url"], height: 190),
               const SizedBox(height: 12),
               Text(
                 event["name"] ?? "",
@@ -675,7 +854,8 @@ class _EventListPageState extends State<EventListPage> {
               Text("🏢 ${event["club"] ?? ""}"),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: getColor(event["music_type"] ?? ""),
                   borderRadius: BorderRadius.circular(10),
@@ -715,7 +895,7 @@ class _EventListPageState extends State<EventListPage> {
   Widget paginationBar() {
     return Container(
       padding: const EdgeInsets.all(10),
-      color: Colors.black,
+      color: Colors.black.withOpacity(0.45),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -732,6 +912,55 @@ class _EventListPageState extends State<EventListPage> {
             onPressed: events.length < limit ? null : nextPage,
             icon: const Icon(Icons.chevron_right),
             label: const Text("Następna"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget welcomeBanner() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.58),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.10)),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Image.asset(
+              AppAssets.loginOpen,
+              width: 90,
+              height: 90,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Witaj w Techno Radar",
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isAdmin
+                      ? "Masz dostęp administratora. Możesz zarządzać eventami i importem."
+                      : "Przeglądaj wydarzenia, zapisuj ulubione i odkrywaj nowe brzmienia.",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.80),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -773,49 +1002,56 @@ class _EventListPageState extends State<EventListPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (isAdmin)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              color: Colors.deepPurple.withOpacity(0.35),
-              child: const Text(
-                "Tryb administratora: możesz dodawać, edytować i usuwać eventy.",
-                textAlign: TextAlign.center,
+      body: MusicBackground(
+        child: Column(
+          children: [
+            welcomeBanner(),
+            if (isAdmin)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Text(
+                  "Tryb administratora: możesz dodawać, edytować, usuwać i zatwierdzać eventy.",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              child: TextField(
+                controller: searchController,
+                onChanged: searchEvents,
+                decoration: const InputDecoration(
+                  hintText:
+                      "Szukaj po nazwie, mieście, klubie lub typie muzyki",
+                  prefixIcon: Icon(Icons.search),
+                ),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: TextField(
-              controller: searchController,
-              onChanged: searchEvents,
-              decoration: const InputDecoration(
-                hintText: "Szukaj po nazwie, mieście, klubie lub typie muzyki",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : events.isEmpty
-                    ? const Center(
-                        child: Text(
-                          "Brak eventów",
-                          style: TextStyle(fontSize: 18),
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : events.isEmpty
+                      ? const Center(
+                          child: Text(
+                            "Brak eventów",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (_, index) {
+                            return eventCard(events[index]);
+                          },
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: events.length,
-                        itemBuilder: (_, index) {
-                          return eventCard(events[index]);
-                        },
-                      ),
-          ),
-          paginationBar(),
-        ],
+            ),
+            paginationBar(),
+          ],
+        ),
       ),
       floatingActionButton: isAdmin
           ? FloatingActionButton(
@@ -845,6 +1081,7 @@ class EventDetailsPage extends StatelessWidget {
 
   Widget detailRow(String label, String value, IconData icon) {
     return Card(
+      color: Colors.black.withOpacity(0.68),
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
@@ -861,55 +1098,80 @@ class EventDetailsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Szczegóły eventu"),
       ),
-      body: Center(
-        child: Container(
-          width: 480,
-          padding: const EdgeInsets.all(20),
-          child: ListView(
-            children: [
-              eventImage(event["image_url"], height: 250),
-              const SizedBox(height: 18),
-              Text(
-                event["name"] ?? "",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              detailRow("Miasto", event["city"] ?? "", Icons.location_city),
-              detailRow("Data", event["date"] ?? "", Icons.calendar_month),
-              detailRow("Klub", event["club"] ?? "", Icons.apartment),
-              detailRow("Typ muzyki", musicType, Icons.music_note),
-              if (isAdmin) const SizedBox(height: 20),
-              if (isAdmin)
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          await onEdit();
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.edit),
-                        label: const Text("Edytuj"),
+      body: MusicBackground(
+        child: Center(
+          child: Container(
+            width: 520,
+            padding: const EdgeInsets.all(20),
+            child: ListView(
+              children: [
+                GlassPanel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      eventImage(event["image_url"], height: 250),
+                      const SizedBox(height: 18),
+                      Text(
+                        event["name"] ?? "",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          await onDelete();
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.delete),
-                        label: const Text("Usuń"),
+                      const SizedBox(height: 20),
+                      detailRow(
+                        "Miasto",
+                        event["city"] ?? "",
+                        Icons.location_city,
                       ),
-                    ),
-                  ],
+                      detailRow(
+                        "Data",
+                        event["date"] ?? "",
+                        Icons.calendar_month,
+                      ),
+                      detailRow(
+                        "Klub",
+                        event["club"] ?? "",
+                        Icons.apartment,
+                      ),
+                      detailRow(
+                        "Typ muzyki",
+                        musicType,
+                        Icons.music_note,
+                      ),
+                      if (isAdmin) const SizedBox(height: 20),
+                      if (isAdmin)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  await onEdit();
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(Icons.edit),
+                                label: const Text("Edytuj"),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  await onDelete();
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(Icons.delete),
+                                label: const Text("Usuń"),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -971,6 +1233,11 @@ class EventForm extends StatelessWidget {
       "Acid Techno",
       "Minimal",
       "Industrial Techno",
+      "House",
+      "Tech House",
+      "Trance",
+      "Drum and Bass",
+      "Dubstep",
     ];
 
     String? selectedMusicType;
@@ -983,106 +1250,103 @@ class EventForm extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: Center(
-        child: Container(
-          width: 430,
-          padding: const EdgeInsets.all(25),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              TextField(
-                controller: name,
-                decoration: const InputDecoration(
-                  labelText: "Nazwa",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: city,
-                decoration: const InputDecoration(
-                  labelText: "Miasto",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: date,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  labelText: "Data",
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.calendar_month),
-                ),
-                onTap: () => chooseDate(context),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: club,
-                decoration: const InputDecoration(
-                  labelText: "Klub",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: selectedMusicType,
-                decoration: const InputDecoration(
-                  labelText: "Typ muzyki",
-                  border: OutlineInputBorder(),
-                ),
-                items: musicTypes.map((type) {
-                  return DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(type),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  musicType.text = value ?? "";
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: imageUrl,
-                decoration: const InputDecoration(
-                  labelText: "Link do zdjęcia / flyera",
-                  hintText: "Możesz wkleić link albo wybrać plik",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.image),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: uploadingImage ? null : onPickImage,
-                  icon: uploadingImage
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.upload_file),
-                  label: Text(
-                    uploadingImage ? "Wysyłanie zdjęcia..." : "Wybierz zdjęcie",
+      body: MusicBackground(
+        child: Center(
+          child: Container(
+            width: 460,
+            padding: const EdgeInsets.all(20),
+            child: GlassPanel(
+              padding: const EdgeInsets.all(25),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  TextField(
+                    controller: name,
+                    decoration: const InputDecoration(
+                      labelText: "Nazwa",
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: city,
+                    decoration: const InputDecoration(
+                      labelText: "Miasto",
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: date,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: "Data",
+                      suffixIcon: Icon(Icons.calendar_month),
+                    ),
+                    onTap: () => chooseDate(context),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: club,
+                    decoration: const InputDecoration(
+                      labelText: "Klub",
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedMusicType,
+                    decoration: const InputDecoration(
+                      labelText: "Typ muzyki",
+                    ),
+                    items: musicTypes.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      musicType.text = value ?? "";
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: imageUrl,
+                    decoration: const InputDecoration(
+                      labelText: "Link do zdjęcia / flyera",
+                      hintText: "Możesz wkleić link albo wybrać plik",
+                      prefixIcon: Icon(Icons.image),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: uploadingImage ? null : onPickImage,
+                      icon: uploadingImage
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.upload_file),
+                      label: Text(
+                        uploadingImage
+                            ? "Wysyłanie zdjęcia..."
+                            : "Wybierz zdjęcie",
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  eventImage(imageUrl.text, height: 170),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: uploadingImage ? null : onPressed,
+                      child: Text(buttonText),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 14),
-              eventImage(imageUrl.text, height: 120),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: uploadingImage ? null : onPressed,
-                  child: Text(buttonText),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1131,6 +1395,7 @@ class _AddEventPageState extends State<AddEventPage> {
     final file = result.files.first;
 
     if (file.bytes == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Nie udało się odczytać pliku")),
       );
@@ -1169,10 +1434,12 @@ class _AddEventPageState extends State<AddEventPage> {
         cloudinaryPublicId.text = data["public_id"] ?? "";
       });
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Zdjęcie wysłane")),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Błąd uploadu: $responseBody")),
       );
@@ -1304,6 +1571,7 @@ class _EditEventPageState extends State<EditEventPage> {
     final file = result.files.first;
 
     if (file.bytes == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Nie udało się odczytać pliku")),
       );
@@ -1342,10 +1610,12 @@ class _EditEventPageState extends State<EditEventPage> {
         cloudinaryPublicId.text = data["public_id"] ?? "";
       });
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Zdjęcie wysłane")),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Błąd uploadu: $responseBody")),
       );
@@ -1474,11 +1744,12 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
   Widget publicEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Colors.black.withOpacity(0.72),
       child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(10),
-            child: eventImage(event["image_url"], height: 150),
+            child: eventImage(event["image_url"], height: 190),
           ),
           ListTile(
             leading: const Icon(Icons.public),
@@ -1501,48 +1772,49 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
       appBar: AppBar(
         title: const Text("Publiczne eventy"),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: DropdownButtonFormField<int>(
-              value: year,
-              decoration: const InputDecoration(
-                labelText: "Wybierz rok",
-                border: OutlineInputBorder(),
-              ),
-              items: [2024, 2025, 2026, 2027, 2028]
-                  .map(
-                    (itemYear) => DropdownMenuItem<int>(
-                      value: itemYear,
-                      child: Text(itemYear.toString()),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value == null) return;
-
-                setState(() {
-                  year = value;
-                });
-
-                fetchPublicEvents();
-              },
-            ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : events.isEmpty
-                    ? const Center(child: Text("Brak publicznych eventów"))
-                    : ListView.builder(
-                        itemCount: events.length,
-                        itemBuilder: (_, index) {
-                          return publicEventCard(events[index]);
-                        },
+      body: MusicBackground(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: DropdownButtonFormField<int>(
+                value: year,
+                decoration: const InputDecoration(
+                  labelText: "Wybierz rok",
+                ),
+                items: [2024, 2025, 2026, 2027, 2028]
+                    .map(
+                      (itemYear) => DropdownMenuItem<int>(
+                        value: itemYear,
+                        child: Text(itemYear.toString()),
                       ),
-          ),
-        ],
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+
+                  setState(() {
+                    year = value;
+                  });
+
+                  fetchPublicEvents();
+                },
+              ),
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : events.isEmpty
+                      ? const Center(child: Text("Brak publicznych eventów"))
+                      : ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (_, index) {
+                            return publicEventCard(events[index]);
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1680,6 +1952,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
   Widget pendingEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Colors.black.withOpacity(0.72),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -1688,7 +1961,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            eventImage(event["image_url"], height: 160),
+            eventImage(event["image_url"], height: 190),
             const SizedBox(height: 12),
             Text(
               event["name"] ?? "",
@@ -1754,21 +2027,23 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : events.isEmpty
-              ? const Center(
-                  child: Text(
-                    "Brak eventów do zatwierdzenia",
-                    style: TextStyle(fontSize: 18),
+      body: MusicBackground(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : events.isEmpty
+                ? const Center(
+                    child: Text(
+                      "Brak eventów do zatwierdzenia",
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: events.length,
+                    itemBuilder: (_, index) {
+                      return pendingEventCard(events[index]);
+                    },
                   ),
-                )
-              : ListView.builder(
-                  itemCount: events.length,
-                  itemBuilder: (_, index) {
-                    return pendingEventCard(events[index]);
-                  },
-                ),
+      ),
     );
   }
 }
@@ -1830,11 +2105,12 @@ class _MyEventsPageState extends State<MyEventsPage> {
   Widget myEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Colors.black.withOpacity(0.72),
       child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(10),
-            child: eventImage(event["image_url"], height: 150),
+            child: eventImage(event["image_url"], height: 190),
           ),
           ListTile(
             leading: const Icon(Icons.favorite, color: Colors.red),
@@ -1857,16 +2133,18 @@ class _MyEventsPageState extends State<MyEventsPage> {
       appBar: AppBar(
         title: const Text("Moje eventy"),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : events.isEmpty
-              ? const Center(child: Text("Brak eventów na Twojej liście"))
-              : ListView.builder(
-                  itemCount: events.length,
-                  itemBuilder: (_, index) {
-                    return myEventCard(events[index]);
-                  },
-                ),
+      body: MusicBackground(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : events.isEmpty
+                ? const Center(child: Text("Brak eventów na Twojej liście"))
+                : ListView.builder(
+                    itemCount: events.length,
+                    itemBuilder: (_, index) {
+                      return myEventCard(events[index]);
+                    },
+                  ),
+      ),
     );
   }
 }

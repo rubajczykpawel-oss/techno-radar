@@ -10,6 +10,7 @@ import os
 import cloudinary
 import cloudinary.uploader
 import requests
+import random
 from dotenv import load_dotenv 
 from database import Base, engine, get_db
 from models import Event, User, UserEvent
@@ -57,6 +58,70 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 bearer_scheme = HTTPBearer(auto_error=False)
+TECHNO_BANNER_URLS = [
+    "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592421/aditya-chinchure-ZhQCZjr9fHo-unsplash_unfcpl.jpg",
+    "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592421/josh-olalde-V1O0gBfbrO8-unsplash_ikjqu5.jpg",
+    "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592419/artem-bryzgalov-4EQVWx5tvp0-unsplash_k7kvnf.jpg",
+    "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592416/shawn-kAkcJwphYkY-unsplash_lwlt7i.jpg",
+    "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592415/aditya-chinchure-9tZhyQskezA-unsplash_lc9qqe.jpg",
+    "https://res.cloudinary.com/dqbt0xxmd/image/upload/v1778592412/artem-bryzgalov-4EQVWx5tvp0-unsplash_1_fbkawl.jpg"
+]
+
+TECHNO_KEYWORDS = [
+    "techno",
+    "hard techno",
+    "acid techno",
+    "industrial techno",
+    "minimal techno",
+    "melodic techno",
+    "electronic"
+]
+
+
+def get_random_banner_url():
+    return random.choice(TECHNO_BANNER_URLS)
+
+
+def build_ticketmaster_search_text(item: dict):
+    parts = []
+
+    name = item.get("name", "")
+    if name:
+        parts.append(name)
+
+    classifications = item.get("classifications", [])
+
+    for classification in classifications:
+        segment = classification.get("segment", {}).get("name", "")
+        genre = classification.get("genre", {}).get("name", "")
+        sub_genre = classification.get("subGenre", {}).get("name", "")
+        type_name = classification.get("type", {}).get("name", "")
+        sub_type = classification.get("subType", {}).get("name", "")
+
+        for value in [segment, genre, sub_genre, type_name, sub_type]:
+            if value:
+                parts.append(value)
+
+    return " ".join(parts).lower()
+
+
+def is_electronic_event(search_text: str):
+    return any(keyword in search_text for keyword in TECHNO_KEYWORDS)
+
+
+def detect_music_type(search_text: str):
+    text = search_text.lower()
+
+    if "acid" in text:
+        return "Acid Techno"
+    if "hard techno" in text:
+        return "Hard Techno"
+    if "industrial" in text:
+        return "Industrial Techno"
+    if "minimal" in text:
+        return "Minimal"
+
+    return "Techno"
 
 
 # ---------- AUTH FUNCTIONS ----------
@@ -142,7 +207,8 @@ def get_events(
 
     offset = (page - 1) * limit
 
-    query = db.query(Event).filter(Event.user_id == user_id)
+    query = (db.query(Event).filter(Event.source_name == "Ticketmaster").filter(Event.is_verified == 1)
+)
 
     if search.strip() != "":
         search_text = f"%{search}%"
@@ -183,7 +249,6 @@ def get_events(
 
     return result
 
-
 @app.get("/public-events")
 def get_public_events(
     year: int,
@@ -195,6 +260,7 @@ def get_public_events(
         db.query(Event)
         .filter(Event.date.like(year_text))
         .filter(Event.is_verified == 1)
+        .filter(Event.source_name == "Ticketmaster")
         .order_by(Event.date.asc())
         .all()
     )
@@ -220,19 +286,20 @@ def get_public_events(
 
     return result
 
-
 @app.get("/my-events")
 def get_my_events(
     user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     saved_events = (
-        db.query(Event)
-        .join(UserEvent, Event.id == UserEvent.event_id)
-        .filter(UserEvent.user_id == user_id)
-        .order_by(Event.date.asc())
-        .all()
-    )
+    db.query(Event)
+    .join(UserEvent, Event.id == UserEvent.event_id)
+    .filter(UserEvent.user_id == user_id)
+    .filter(Event.source_name == "Ticketmaster")
+    .filter(Event.is_verified == 1)
+    .order_by(Event.date.asc())
+    .all()
+)
 
     result = []
 
@@ -558,112 +625,167 @@ def import_ticketmaster_events(
             detail="Tylko admin może importować eventy"
         )
 
-    ticketmaster_api_key = os.getenv("TICKETMASTER_API_KEY")
+    api_key = os.getenv("TICKETMASTER_API_KEY")
 
-    if not ticketmaster_api_key:
+    if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Brak TICKETMASTER_API_KEY w zmiennych środowiskowych"
+            detail="Brak TICKETMASTER_API_KEY w .env"
         )
 
     url = "https://app.ticketmaster.com/discovery/v2/events.json"
 
-    params = {
-        "apikey": ticketmaster_api_key,
-        "keyword": "techno",
-        "countryCode": "PL",
-        "size": 20,
-        "sort": "date,asc"
-    }
-
-    response = requests.get(url, params=params, timeout=15)
-
-    if response.status_code != 200:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Błąd Ticketmaster API: {response.status_code} {response.text}"
-        )
-
-    data = response.json()
-
-    embedded = data.get("_embedded", {})
-    ticketmaster_events = embedded.get("events", [])
+    search_keywords = [
+        "techno",
+        "hard techno",
+        "acid techno",
+        "industrial techno",
+        "minimal techno",
+        "melodic techno",
+        "electronic"
+    ]
 
     imported_count = 0
     skipped_count = 0
 
-    for item in ticketmaster_events:
-        ticketmaster_id = item.get("id", "")
+    for keyword in search_keywords:
+        page = 0
 
-        if not ticketmaster_id:
-            skipped_count += 1
-            continue
+        while True:
+            params = {
+                "apikey": api_key,
+                "keyword": keyword,
+                "countryCode": "PL",
+                "locale": "*",
+                "size": 100,
+                "page": page,
+                "sort": "date,asc"
+            }
 
-        external_id = f"ticketmaster_{ticketmaster_id}"
+            response = requests.get(url, params=params, timeout=30)
 
-        existing_event = (
-            db.query(Event)
-            .filter(Event.external_id == external_id)
-            .first()
-        )
+            if response.status_code != 200:
+                break
 
-        if existing_event:
-            skipped_count += 1
-            continue
+            data = response.json()
 
-        name = item.get("name", "Ticketmaster event")
+            events_data = data.get("_embedded", {}).get("events", [])
 
-        dates = item.get("dates", {})
-        start = dates.get("start", {})
-        local_date = start.get("localDate", "")
+            if not events_data:
+                break
 
-        event_url = item.get("url", "")
+            for item in events_data:
+                ticketmaster_id = item.get("id", "").strip()
 
-        images = item.get("images", [])
-        image_url = ""
+                if not ticketmaster_id:
+                    skipped_count += 1
+                    continue
 
-        if images:
-            image_url = images[0].get("url", "")
+                external_id = f"ticketmaster_{ticketmaster_id}"
 
-        city = ""
-        club = ""
+                existing_event = (
+                    db.query(Event)
+                    .filter(Event.external_id == external_id)
+                    .first()
+                )
 
-        item_embedded = item.get("_embedded", {})
-        venues = item_embedded.get("venues", [])
+                if existing_event:
+                    skipped_count += 1
+                    continue
 
-        if venues:
-            first_venue = venues[0]
-            club = first_venue.get("name", "")
+                search_text = build_ticketmaster_search_text(item)
 
-            city_data = first_venue.get("city", {})
-            city = city_data.get("name", "")
+                if not is_electronic_event(search_text):
+                    skipped_count += 1
+                    continue
 
-        new_event = Event(
-            name=name,
-            city=city,
-            date=local_date,
-            club=club,
-            music_type="Techno",
-            image_url=image_url,
-            cloudinary_public_id="",
-            source_name="Ticketmaster",
-            source_url=event_url,
-            external_id=external_id,
-            is_verified=0,
-            imported_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            user_id=user_id
-        )
+                name = item.get("name", "").strip()
 
-        db.add(new_event)
-        imported_count += 1
+                start_data = item.get("dates", {}).get("start", {})
+                local_date = start_data.get("localDate", "")
+
+                if not local_date:
+                    skipped_count += 1
+                    continue
+
+                venues = item.get("_embedded", {}).get("venues", [])
+                venue = venues[0] if venues else {}
+
+                city = venue.get("city", {}).get("name", "Nieznane miasto")
+                club = venue.get("name", "Nieznany obiekt")
+
+                source_url = item.get("url", "")
+
+                # TU specjalnie ustawiamy losowy banner zamiast zdjęcia z Ticketmastera
+                image_url = get_random_banner_url()
+
+                music_type = detect_music_type(search_text)
+
+                new_event = Event(
+                    name=name,
+                    city=city,
+                    date=local_date,
+                    club=club,
+                    music_type=music_type,
+                    image_url=image_url,
+                    cloudinary_public_id="",
+                    source_name="Ticketmaster",
+                    source_url=source_url,
+                    external_id=external_id,
+                    is_verified=1,
+                    imported_at=datetime.utcnow().date().isoformat(),
+                    user_id=user_id
+                )
+
+                db.add(new_event)
+                imported_count += 1
+
+            page_info = data.get("page", {})
+            current_page = page_info.get("number", 0)
+            total_pages = page_info.get("totalPages", 0)
+
+            if current_page + 1 >= total_pages:
+                break
+
+            page += 1
 
     db.commit()
 
     return {
-        "message": "Import Ticketmaster zakończony",
+        "message": "Import eventów z Ticketmaster zakończony",
         "imported_count": imported_count,
-        "skipped_count": skipped_count,
-        "ticketmaster_results": len(ticketmaster_events)
+        "skipped_count": skipped_count
+    }
+
+@app.post("/admin/update-ticketmaster-banners")
+def update_ticketmaster_banners(
+    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not is_admin(user_id, db):
+        raise HTTPException(
+            status_code=403,
+            detail="Tylko admin może aktualizować bannery eventów"
+        )
+
+    events = (
+        db.query(Event)
+        .filter(Event.source_name == "Ticketmaster")
+        .all()
+    )
+
+    updated_count = 0
+
+    for event in events:
+        event.image_url = get_random_banner_url()
+        event.cloudinary_public_id = ""
+        updated_count += 1
+
+    db.commit()
+
+    return {
+        "message": "Bannery eventów Ticketmaster zostały zaktualizowane",
+        "updated_count": updated_count
     }
 
 @app.get("/admin/imported-events/pending")
