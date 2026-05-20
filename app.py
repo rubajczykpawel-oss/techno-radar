@@ -1,20 +1,18 @@
 from fastapi import FastAPI, Depends, Query, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
-from passlib.context import CryptContext
+from datetime import datetime
 import os
 import cloudinary
 import cloudinary.uploader
 import requests
 from dotenv import load_dotenv
-
+from core.security import get_current_user, is_admin
+from routers import auth_router
 from database import Base, engine, get_db
-from models import Event, User, UserEvent
-from schemas import EventCreate, UserCreate, UserLogin
+from models import Event, UserEvent
+from schemas import EventCreate
 
 
 load_dotenv()
@@ -27,9 +25,7 @@ cloudinary.config(
     secure=True
 )
 
-
 app = FastAPI()
-
 
 # Tworzymy tabele w bazie danych na podstawie models.py
 Base.metadata.create_all(bind=engine)
@@ -45,20 +41,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ---------- AUTH CONFIG ----------
-
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-if not SECRET_KEY:
-    raise ValueError("Brak SECRET_KEY w pliku .env")
-
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-bearer_scheme = HTTPBearer(auto_error=False)
+app.include_router(auth_router.router)
 
 
 # ---------- TECHNO / TICKETMASTER CONFIG ----------
@@ -197,70 +180,6 @@ def detect_music_type(search_text: str):
         return "Electronic"
 
     return "Techno"
-
-
-# ---------- AUTH FUNCTIONS ----------
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
-
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    to_encode.update({
-        "exp": expire
-    })
-
-    encoded_jwt = jwt.encode(
-        to_encode,
-        SECRET_KEY,
-        algorithm=ALGORITHM
-    )
-
-    return encoded_jwt
-
-
-def hash_password(password: str):
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password, hashed_password: str):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
-):
-    if not credentials:
-        raise HTTPException(status_code=401, detail="Brak tokena")
-
-    token = credentials.credentials
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("user_id")
-
-        if not user_id:
-            raise HTTPException(
-                status_code=401,
-                detail="Token niepoprawny lub wygasł"
-            )
-
-        return user_id
-
-    except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Token niepoprawny lub wygasł"
-        )
-
-
-def is_admin(user_id: int, db: Session):
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if user and user.is_admin == 1:
-        return True
-
-    return False
 
 
 # ---------- HOME ----------
@@ -510,66 +429,6 @@ def create_event(
         "is_verified": new_event.is_verified,
         "imported_at": new_event.imported_at
     }
-
-
-# ---------- USERS ----------
-
-@app.post("/register")
-def register_user(
-    user: UserCreate,
-    db: Session = Depends(get_db)
-):
-    hashed_password = hash_password(user.password)
-
-    new_user = User(
-        username=user.username,
-        email=user.email,
-        password=hashed_password,
-        is_admin=0
-    )
-
-    try:
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
-        return {
-            "message": "User registered",
-            "id": new_user.id,
-            "username": new_user.username,
-            "email": new_user.email
-        }
-
-    except IntegrityError:
-        db.rollback()
-        return {"error": "User already exists"}
-
-
-@app.post("/login")
-def login_user(
-    user: UserLogin,
-    db: Session = Depends(get_db)
-):
-    found_user = db.query(User).filter(User.email == user.email).first()
-
-    if found_user and verify_password(user.password, found_user.password):
-        token = create_access_token({
-            "user_id": found_user.id,
-            "username": found_user.username,
-            "email": found_user.email,
-            "is_admin": found_user.is_admin
-        })
-
-        return {
-            "message": "Login successful",
-            "token": token,
-            "id": found_user.id,
-            "username": found_user.username,
-            "email": found_user.email,
-            "is_admin": found_user.is_admin
-        }
-
-    return {"error": "Invalid email or password"}
 
 
 # ---------- MY EVENTS ----------
