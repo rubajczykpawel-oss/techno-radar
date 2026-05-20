@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query, HTTPException, UploadFile, File
+from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -8,7 +8,7 @@ import cloudinary.uploader
 import requests
 from dotenv import load_dotenv
 from core.security import get_current_user, is_admin
-from routers import auth_router, my_events_router, events_router
+from routers import auth_router, my_events_router, events_router, upload_router
 from database import Base, engine, get_db
 from models import Event
 
@@ -42,6 +42,7 @@ app.add_middleware(
 app.include_router(auth_router.router)
 app.include_router(my_events_router.router)
 app.include_router(events_router.router)
+app.include_router(upload_router.router)
 
 # ---------- TECHNO / TICKETMASTER CONFIG ----------
 
@@ -186,68 +187,6 @@ def detect_music_type(search_text: str):
 @app.get("/")
 def home():
     return {"message": "Techno Radar działa z PostgreSQL!"}
-
-
-# ---------- UPLOAD IMAGE ----------
-
-@app.post("/upload-image")
-def upload_image(file: UploadFile = File(...)):
-    filename = file.filename.lower()
-
-    allowed_extensions = [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".webp"
-    ]
-
-    if not any(filename.endswith(extension) for extension in allowed_extensions):
-        raise HTTPException(
-            status_code=400,
-            detail="Dozwolone są tylko pliki JPG, JPEG, PNG i WEBP"
-        )
-
-    contents = file.file.read()
-
-    max_size = 10 * 1024 * 1024
-
-    if len(contents) > max_size:
-        raise HTTPException(
-            status_code=400,
-            detail="Maksymalny rozmiar zdjęcia to 10MB"
-        )
-
-    try:
-        upload_result = cloudinary.uploader.upload(
-            contents,
-            folder="techno_radar/events"
-        )
-
-        image_url = upload_result.get("secure_url")
-        public_id = upload_result.get("public_id")
-
-        if not image_url:
-            raise HTTPException(
-                status_code=500,
-                detail="Cloudinary nie zwróciło linku do zdjęcia"
-            )
-
-        if not public_id:
-            raise HTTPException(
-                status_code=500,
-                detail="Cloudinary nie zwróciło public_id zdjęcia"
-            )
-
-        return {
-            "image_url": image_url,
-            "public_id": public_id
-        }
-
-    except Exception as error:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Błąd uploadu do Cloudinary: {str(error)}"
-        )
 
 
 # ---------- ADMIN IMPORT TEST EVENTS ----------
