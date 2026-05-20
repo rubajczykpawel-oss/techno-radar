@@ -304,12 +304,7 @@ def get_events(
             (Event.music_type.ilike(search_text))
         )
 
-    events = (
-        query
-        .order_by(Event.date.asc())
-        .limit(limit)
-        .offset(offset)
-        .all()
+    events = (query.order_by(Event.date.asc()).limit(limit).offset(offset).all()
     )
 
     result = []
@@ -335,10 +330,8 @@ def get_events(
 
 
 @app.get("/public-events")
-def get_public_events(
-    year: int,
-    db: Session = Depends(get_db)
-):
+def get_public_events(year: int, db: Session = Depends(get_db)):
+
     year_text = f"{year}-%"
 
     events = (
@@ -480,7 +473,7 @@ def create_event(
     db: Session = Depends(get_db)
 ):
     if not is_admin(user_id, db):
-        return {"error": "Only admin can create events"}
+        raise HTTPException(status_code=403, detail="Only admin can create events")
 
     new_event = Event(
         name=event.name,
@@ -971,7 +964,7 @@ def delete_event(
     db: Session = Depends(get_db)
 ):
     if not is_admin(user_id, db):
-        return {"error": "Only admin can delete events"}
+        raise HTTPException(status_code=403, detail="Only admin can delete events")
 
     event = (
         db.query(Event)
@@ -1016,16 +1009,19 @@ def update_event(
     db: Session = Depends(get_db)
 ):
     if not is_admin(user_id, db):
-        return {"error": "Only admin can edit events"}
-
-    event = (
-        db.query(Event)
-        .filter(Event.id == event_id)
-        .first()
+        raise HTTPException(
+        status_code=403,
+        detail="Only admin can edit events"
     )
 
+    event = (db.query(Event).filter(Event.id == event_id).first())
+
     if not event:
-        return {"error": "Event not found"}
+        raise HTTPException(
+            status_code=404,
+            detail="Event not found"
+        )
+
 
     event.name = updated_event.name
     event.city = updated_event.city
