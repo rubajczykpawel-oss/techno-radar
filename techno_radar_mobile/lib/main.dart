@@ -713,6 +713,8 @@ class _EventListPageState extends State<EventListPage> {
 
   final searchController = TextEditingController();
 
+  String selectedCity = "";
+
   int page = 1;
   final int limit = 5;
   bool isLoading = false;
@@ -744,6 +746,10 @@ class _EventListPageState extends State<EventListPage> {
 
     if (searchText.isNotEmpty) {
       url += "&search=${Uri.encodeComponent(searchText)}";
+    }
+
+    if (selectedCity.isNotEmpty) {
+      url += "&city=${Uri.encodeComponent(selectedCity)}";
     }
 
     final response = await http.get(
@@ -790,6 +796,15 @@ class _EventListPageState extends State<EventListPage> {
 
   void searchEvents(String value) {
     setState(() {
+      page = 1;
+    });
+
+    fetchEvents();
+  }
+
+  void changeCity(String? value) {
+    setState(() {
+      selectedCity = value ?? "";
       page = 1;
     });
 
@@ -1101,6 +1116,51 @@ class _EventListPageState extends State<EventListPage> {
                       "Szukaj po nazwie, mieście, klubie lub typie muzyki",
                   prefixIcon: Icon(Icons.search),
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: DropdownButtonFormField<String>(
+                value: selectedCity,
+                decoration: const InputDecoration(
+                  labelText: "Filtruj po mieście",
+                  prefixIcon: Icon(Icons.location_city),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: "",
+                    child: Text("Wszystkie miasta"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Warsaw",
+                    child: Text("Warsaw"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Kraków",
+                    child: Text("Kraków"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Wrocław",
+                    child: Text("Wrocław"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Gdańsk",
+                    child: Text("Gdańsk"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Katowice",
+                    child: Text("Katowice"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Poznań",
+                    child: Text("Poznań"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Łódź",
+                    child: Text("Łódź"),
+                  ),
+                ],
+                onChanged: changeCity,
               ),
             ),
             Expanded(
