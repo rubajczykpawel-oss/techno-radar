@@ -14,9 +14,10 @@ router = APIRouter()
 def get_events(
     user_id: int = Depends(get_current_user),
     search: str = Query(default=""),
+    city: str = Query(default=""),
     page: int = Query(default=1),
     limit: int = Query(default=5),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     if page < 1:
         page = 1
@@ -41,6 +42,10 @@ def get_events(
             (Event.club.ilike(search_text)) |
             (Event.music_type.ilike(search_text))
         )
+    if city.strip() != "":
+        city_text = f"%{city}%"
+
+        query = query.filter(Event.city.ilike(city_text))
 
     events = (
         query.order_by(Event.date.asc())
