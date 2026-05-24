@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from services.date_service import get_polish_day_of_week
 from database import get_db
 from models import Event, UserEvent
 from core.security import get_current_user
@@ -33,6 +33,7 @@ def get_my_events(
             "name": event.name,
             "city": event.city,
             "date": event.date,
+            "day_of_week": get_polish_day_of_week(event.date),
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,

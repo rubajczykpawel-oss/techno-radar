@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-
+from services.date_service import get_polish_day_of_week
 import requests
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
@@ -325,6 +325,7 @@ def get_pending_imported_events(
             "name": event.name,
             "city": event.city,
             "date": event.date,
+            "day_of_week": get_polish_day_of_week(event.date),
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,
@@ -370,5 +371,7 @@ def verify_imported_event(
         "is_verified": event.is_verified,
         "source_name": event.source_name,
         "source_url": event.source_url,
-        "external_id": event.external_id
+        "external_id": event.external_id,
+        "date": event.date,
+        "day_of_week": get_polish_day_of_week(event.date),
     }

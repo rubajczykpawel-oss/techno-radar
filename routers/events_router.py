@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 import cloudinary.uploader
-
+from services.date_service import get_polish_day_of_week
 from database import get_db
 from models import Event, UserEvent
 from schemas import EventCreate
@@ -57,6 +57,7 @@ def get_events(
             "name": event.name,
             "city": event.city,
             "date": event.date,
+            "day_of_week": get_polish_day_of_week(event.date),
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,
@@ -92,6 +93,7 @@ def get_public_events(year: int, db: Session = Depends(get_db)):
             "name": event.name,
             "city": event.city,
             "date": event.date,
+            "day_of_week": get_polish_day_of_week(event.date),
             "club": event.club,
             "music_type": event.music_type,
             "image_url": event.image_url,
@@ -139,6 +141,7 @@ def create_event(
         "name": new_event.name,
         "city": new_event.city,
         "date": new_event.date,
+        "day_of_week": get_polish_day_of_week(event.date),
         "club": new_event.club,
         "music_type": new_event.music_type,
         "image_url": new_event.image_url,
