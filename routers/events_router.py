@@ -6,7 +6,7 @@ from database import get_db
 from models import Event, UserEvent
 from schemas import EventCreate
 from core.security import get_current_user, is_admin
-
+from services.event_response_service import build_event_response
 
 router = APIRouter()
 
@@ -52,22 +52,7 @@ def get_events(
     result = []
 
     for event in events:
-        result.append({
-            "id": event.id,
-            "name": event.name,
-            "city": event.city,
-            "date": event.date,
-            "day_of_week": get_polish_day_of_week(event.date),
-            "club": event.club,
-            "music_type": event.music_type,
-            "image_url": event.image_url,
-            "cloudinary_public_id": event.cloudinary_public_id,
-            "source_name": event.source_name,
-            "source_url": event.source_url,
-            "external_id": event.external_id,
-            "is_verified": event.is_verified,
-            "imported_at": event.imported_at
-        })
+        result.append(build_event_response(event))
 
     return result
 
@@ -88,22 +73,7 @@ def get_public_events(year: int, db: Session = Depends(get_db)):
     result = []
 
     for event in events:
-        result.append({
-            "id": event.id,
-            "name": event.name,
-            "city": event.city,
-            "date": event.date,
-            "day_of_week": get_polish_day_of_week(event.date),
-            "club": event.club,
-            "music_type": event.music_type,
-            "image_url": event.image_url,
-            "cloudinary_public_id": event.cloudinary_public_id,
-            "source_name": event.source_name,
-            "source_url": event.source_url,
-            "external_id": event.external_id,
-            "is_verified": event.is_verified,
-            "imported_at": event.imported_at
-        })
+        result.append(build_event_response(event))
 
     return result
 
@@ -136,22 +106,7 @@ def create_event(
     db.commit()
     db.refresh(new_event)
 
-    return {
-        "id": new_event.id,
-        "name": new_event.name,
-        "city": new_event.city,
-        "date": new_event.date,
-        "day_of_week": get_polish_day_of_week(event.date),
-        "club": new_event.club,
-        "music_type": new_event.music_type,
-        "image_url": new_event.image_url,
-        "cloudinary_public_id": new_event.cloudinary_public_id,
-        "source_name": new_event.source_name,
-        "source_url": new_event.source_url,
-        "external_id": new_event.external_id,
-        "is_verified": new_event.is_verified,
-        "imported_at": new_event.imported_at
-    }
+    return build_event_response(new_event)
 
 @router.delete("/events/{event_id}")
 def delete_event(
