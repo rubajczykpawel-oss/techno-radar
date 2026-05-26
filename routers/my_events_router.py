@@ -6,7 +6,7 @@ from database import get_db
 from models import Event, UserEvent
 from core.security import get_current_user
 from services.event_response_service import build_event_response
-
+from datetime import date
 
 router = APIRouter()
 
@@ -16,12 +16,16 @@ def get_my_events(
     user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    
+    today_text = date.today().isoformat()
+
     saved_events = (
         db.query(Event)
         .join(UserEvent, Event.id == UserEvent.event_id)
         .filter(UserEvent.user_id == user_id)
         .filter(Event.source_name == "Ticketmaster")
         .filter(Event.is_verified == 1)
+        .filter(Event.date >= today_text)
         .order_by(Event.date.asc())
         .all()
     )
