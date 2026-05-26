@@ -164,6 +164,10 @@ String eventCityName(Map event) {
   return city;
 }
 
+String eventDaysUntil(Map event) {
+  return (event["days_until"] ?? "").toString();
+}
+
 Future<void> handleUnauthorized(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -1000,6 +1004,8 @@ class _EventListPageState extends State<EventListPage> {
               const SizedBox(height: 8),
               Text("📍 ${eventCityName(event)}"),
               Text("📅 ${eventDateWithDay(event)}"),
+              if (eventDaysUntil(event).isNotEmpty)
+                Text("⏳ ${eventDaysUntil(event)}"),
               Text("🏢 ${event["club"] ?? ""}"),
               const SizedBox(height: 10),
               Container(
@@ -1464,6 +1470,12 @@ class EventDetailsPage extends StatelessWidget {
                         eventDateWithDay(event),
                         Icons.calendar_month,
                       ),
+                      if (eventDaysUntil(event).isNotEmpty)
+                        detailRow(
+                          "Czas do eventu",
+                          eventDaysUntil(event),
+                          Icons.hourglass_bottom,
+                        ),
                       detailRow(
                         "Klub / miejsce",
                         event["club"] ?? "",
@@ -2166,8 +2178,11 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
             ListTile(
               leading: const Icon(Icons.public),
               title: Text(event["name"] ?? ""),
-              subtitle:
-                  Text("${eventCityName(event)} • ${eventDateWithDay(event)}"),
+              subtitle: Text(
+                eventDaysUntil(event).isNotEmpty
+                    ? "${eventCityName(event)} • ${eventDateWithDay(event)} • ${eventDaysUntil(event)}"
+                    : "${eventCityName(event)} • ${eventDateWithDay(event)}",
+              ),
               trailing: ElevatedButton.icon(
                 icon: const Icon(Icons.add),
                 label: const Text("Dodaj"),
@@ -2465,6 +2480,8 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
             const SizedBox(height: 8),
             Text("📍 Miasto: ${eventCityName(event)}"),
             Text("📅 Data: ${eventDateWithDay(event)}"),
+            if (eventDaysUntil(event).isNotEmpty)
+              Text("⏳ Czas do eventu: ${eventDaysUntil(event)}"),
             Text("🏢 Klub: ${event["club"] ?? ""}"),
             Text("🎵 Typ: ${event["music_type"] ?? ""}"),
             const SizedBox(height: 8),
@@ -2649,8 +2666,11 @@ class _MyEventsPageState extends State<MyEventsPage> {
             ListTile(
               leading: const Icon(Icons.favorite, color: Colors.red),
               title: Text(event["name"] ?? ""),
-              subtitle:
-                  Text("${eventCityName(event)} • ${eventDateWithDay(event)}"),
+              subtitle: Text(
+                eventDaysUntil(event).isNotEmpty
+                    ? "${eventCityName(event)} • ${eventDateWithDay(event)} • ${eventDaysUntil(event)}"
+                    : "${eventCityName(event)} • ${eventDateWithDay(event)}",
+              ),
               trailing: ElevatedButton.icon(
                 icon: const Icon(Icons.delete),
                 label: const Text("Usuń"),
