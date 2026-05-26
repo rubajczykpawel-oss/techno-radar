@@ -130,8 +130,13 @@ class AppAssets {
 /* ================= COMMON UI HELPERS ================= */
 
 String eventDateWithDay(Map event) {
+  final formattedDate = (event["formatted_date"] ?? "").toString();
   final date = (event["date"] ?? "").toString();
   final dayOfWeek = (event["day_of_week"] ?? "").toString();
+
+  if (formattedDate.isNotEmpty) {
+    return formattedDate;
+  }
 
   if (date.isEmpty && dayOfWeek.isEmpty) {
     return "";
