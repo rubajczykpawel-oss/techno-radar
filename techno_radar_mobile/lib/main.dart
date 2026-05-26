@@ -2367,6 +2367,69 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
     }
   }
 
+  Future<void> rejectEvent(int eventId) async {
+    final response = await http.delete(
+      Uri.parse("${ApiHelper.baseUrl}/events/$eventId"),
+      headers: await ApiHelper.headers(),
+    );
+
+    if (!mounted) return;
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized(context);
+      return;
+    }
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Event odrzucony i usunięty")),
+      );
+
+      fetchPendingEvents();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Błąd odrzucania eventu: ${response.body}"),
+        ),
+      );
+    }
+  }
+
+  Future<void> confirmRejectEvent(Map event) async {
+    final eventName = (event["name"] ?? "").toString();
+
+    final shouldReject = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Odrzucić event?"),
+          content: Text(
+            "Czy na pewno chcesz odrzucić i usunąć event:\n\n$eventName",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text("Anuluj"),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              icon: const Icon(Icons.delete),
+              label: const Text("Odrzuć"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldReject == true) {
+      await rejectEvent(event["id"]);
+    }
+  }
+
   Widget pendingEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2407,13 +2470,24 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
               style: const TextStyle(color: Colors.white54),
             ),
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => approveEvent(event["id"]),
-                icon: const Icon(Icons.check),
-                label: const Text("Zatwierdź event"),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => approveEvent(event["id"]),
+                    icon: const Icon(Icons.check),
+                    label: const Text("Zatwierdź"),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => confirmRejectEvent(event),
+                    icon: const Icon(Icons.delete),
+                    label: const Text("Odrzuć"),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

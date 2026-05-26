@@ -236,7 +236,7 @@ def import_ticketmaster_events(
                     source_name="Ticketmaster",
                     source_url=source_url,
                     external_id=external_id,
-                    is_verified=1,
+                    is_verified=0,
                     imported_at=datetime.utcnow().date().isoformat(),
                     user_id=user_id
                 )
