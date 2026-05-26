@@ -71,7 +71,7 @@ def get_days_until_event(event_date: str):
     if difference == 0:
         return "Dzisiaj"
     
-    if difference > 0:
+    if difference == 1:
         return "Jutro"
     
     return f"Za {difference} dni"
