@@ -15,6 +15,7 @@ def get_events(
     user_id: int = Depends(get_current_user),
     search: str = Query(default=""),
     city: str = Query(default=""),
+    music_type: str = Query(default=""),
     page: int = Query(default=1),
     limit: int = Query(default=5),
     db: Session = Depends(get_db),
@@ -46,6 +47,11 @@ def get_events(
         city_text = f"%{city}%"
 
         query = query.filter(Event.city.ilike(city_text))
+
+    if music_type.strip() != "":
+        music_type_text = f"%{music_type}%"
+
+        query = query.filter(Event.music_type.ilike(music_type_text))
 
     events = (
         query.order_by(Event.date.asc())
