@@ -153,6 +153,27 @@ String eventDateWithDay(Map event) {
   return "$date • $dayOfWeek";
 }
 
+Future<void> handleUnauthorized(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+
+  await prefs.remove("token");
+  await prefs.remove("is_admin");
+
+  if (!context.mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("Sesja wygasła. Zaloguj się ponownie."),
+    ),
+  );
+
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(builder: (_) => const LoginPage()),
+    (route) => false,
+  );
+}
+
 class MusicBackground extends StatelessWidget {
   final Widget child;
 
@@ -767,6 +788,12 @@ class _EventListPageState extends State<EventListPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
+
     final data = jsonDecode(response.body);
 
     setState(() {
@@ -776,10 +803,16 @@ class _EventListPageState extends State<EventListPage> {
   }
 
   Future<void> deleteEvent(int id) async {
-    await http.delete(
+    final response = await http.delete(
       Uri.parse("${ApiHelper.baseUrl}/events/$id"),
       headers: await ApiHelper.headers(),
     );
+
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
 
     fetchEvents();
   }
@@ -1323,6 +1356,11 @@ class EventDetailsPage extends StatelessWidget {
       headers: await ApiHelper.headers(),
     );
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized(context);
+      return;
+    }
+
     final data = jsonDecode(response.body);
 
     if (!context.mounted) return;
@@ -1742,6 +1780,12 @@ class _AddEventPageState extends State<AddEventPage> {
       uploadingImage = false;
     });
 
+    if (streamedResponse.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
+
     if (streamedResponse.statusCode == 200) {
       final data = jsonDecode(responseBody);
 
@@ -1788,6 +1832,12 @@ class _AddEventPageState extends State<AddEventPage> {
         "imported_at": "",
       }),
     );
+
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
 
     if (response.statusCode == 200 && mounted) {
       Navigator.pop(context);
@@ -1918,6 +1968,12 @@ class _EditEventPageState extends State<EditEventPage> {
       uploadingImage = false;
     });
 
+    if (streamedResponse.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
+
     if (streamedResponse.statusCode == 200) {
       final data = jsonDecode(responseBody);
 
@@ -1964,6 +2020,12 @@ class _EditEventPageState extends State<EditEventPage> {
         "imported_at": widget.event["imported_at"] ?? "",
       }),
     );
+
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
 
     if (response.statusCode == 200 && mounted) {
       Navigator.pop(context);
@@ -2047,6 +2109,12 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
       Uri.parse("${ApiHelper.baseUrl}/my-events/$eventId"),
       headers: await ApiHelper.headers(),
     );
+
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
 
     final data = jsonDecode(response.body);
 
@@ -2188,6 +2256,11 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
 
     if (!mounted) return;
 
+    if (response.statusCode == 401) {
+      await handleUnauthorized(context);
+      return;
+    }
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
@@ -2226,6 +2299,11 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
       setState(() {
         isImporting = false;
       });
+
+      if (response.statusCode == 401) {
+        await handleUnauthorized(context);
+        return;
+      }
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -2268,6 +2346,11 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
     );
 
     if (!mounted) return;
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized(context);
+      return;
+    }
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2412,6 +2495,12 @@ class _MyEventsPageState extends State<MyEventsPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
+
     final data = jsonDecode(response.body);
 
     setState(() {
@@ -2425,6 +2514,12 @@ class _MyEventsPageState extends State<MyEventsPage> {
       Uri.parse("${ApiHelper.baseUrl}/my-events/$eventId"),
       headers: await ApiHelper.headers(),
     );
+
+    if (response.statusCode == 401) {
+      if (!mounted) return;
+      await handleUnauthorized(context);
+      return;
+    }
 
     final data = jsonDecode(response.body);
 
