@@ -153,6 +153,17 @@ String eventDateWithDay(Map event) {
   return "$date • $dayOfWeek";
 }
 
+String eventCityName(Map event) {
+  final cityDisplay = (event["city_display"] ?? "").toString();
+  final city = (event["city"] ?? "").toString();
+
+  if (cityDisplay.isNotEmpty) {
+    return cityDisplay;
+  }
+
+  return city;
+}
+
 Future<void> handleUnauthorized(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -987,7 +998,7 @@ class _EventListPageState extends State<EventListPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text("📍 ${event["city"] ?? ""}"),
+              Text("📍 ${eventCityName(event)}"),
               Text("📅 ${eventDateWithDay(event)}"),
               Text("🏢 ${event["club"] ?? ""}"),
               const SizedBox(height: 10),
@@ -1185,7 +1196,7 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                   DropdownMenuItem(
                     value: "Warsaw",
-                    child: Text("Warsaw"),
+                    child: Text("Warszawa"),
                   ),
                   DropdownMenuItem(
                     value: "Kraków",
@@ -1445,7 +1456,7 @@ class EventDetailsPage extends StatelessWidget {
                       const SizedBox(height: 20),
                       detailRow(
                         "Miasto",
-                        event["city"] ?? "",
+                        eventCityName(event),
                         Icons.location_city,
                       ),
                       detailRow(
@@ -2156,7 +2167,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
               leading: const Icon(Icons.public),
               title: Text(event["name"] ?? ""),
               subtitle:
-                  Text("${event["city"] ?? ""} • ${eventDateWithDay(event)}"),
+                  Text("${eventCityName(event)} • ${eventDateWithDay(event)}"),
               trailing: ElevatedButton.icon(
                 icon: const Icon(Icons.add),
                 label: const Text("Dodaj"),
@@ -2452,7 +2463,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
               ),
             ),
             const SizedBox(height: 8),
-            Text("📍 Miasto: ${event["city"] ?? ""}"),
+            Text("📍 Miasto: ${eventCityName(event)}"),
             Text("📅 Data: ${eventDateWithDay(event)}"),
             Text("🏢 Klub: ${event["club"] ?? ""}"),
             Text("🎵 Typ: ${event["music_type"] ?? ""}"),
@@ -2639,7 +2650,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
               leading: const Icon(Icons.favorite, color: Colors.red),
               title: Text(event["name"] ?? ""),
               subtitle:
-                  Text("${event["city"] ?? ""} • ${eventDateWithDay(event)}"),
+                  Text("${eventCityName(event)} • ${eventDateWithDay(event)}"),
               trailing: ElevatedButton.icon(
                 icon: const Icon(Icons.delete),
                 label: const Text("Usuń"),
