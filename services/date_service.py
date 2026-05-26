@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 POLISH_WEEKDAYS = {
     0: "Poniedziałek",
@@ -52,3 +52,27 @@ def get_polish_formatted_date(date_text: str):
     
     except ValueError:
         return date_text
+    
+def get_days_until_event(event_date: str):
+    if not event_date:
+        return ""
+    
+    try:
+        parsed_event_date = datetime.strptime(event_date, "%Y-%m-%d").date()
+    except ValueError:
+        return ""
+    
+    today = date.today()
+    difference = (parsed_event_date - today).days
+
+    if difference < 0:
+        return "Wydarzenie minęło"
+    
+    if difference == 0:
+        return "Dzisiaj"
+    
+    if difference > 0:
+        return "Jutro"
+    
+    return f"Za {difference} dni"
+

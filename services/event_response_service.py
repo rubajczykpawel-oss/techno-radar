@@ -1,4 +1,8 @@
-from services.date_service import get_polish_day_of_week, get_polish_formatted_date
+from services.date_service import (
+    get_polish_day_of_week, 
+    get_polish_formatted_date,
+    get_days_until_event
+)
 from services.city_service import get_polish_city_name
 
 def build_event_response(event):
@@ -10,6 +14,7 @@ def build_event_response(event):
         "date": event.date,
         "day_of_week": get_polish_day_of_week(event.date),
         "formatted_date": get_polish_formatted_date(event.date),
+        "days_until": get_days_until_event(event.date),
         "club": event.club,
         "music_type": event.music_type,
         "image_url": event.image_url,
