@@ -20,12 +20,17 @@ def get_events(
     page: int = Query(default=1),
     limit: int = Query(default=5),
     db: Session = Depends(get_db),
+    year: int = Query(default=0),
+    month: int = Query(default=0)
 ):
     if page < 1:
         page = 1
 
     if limit < 1:
         limit = 5
+    
+    if month < 0 or month > 12:
+        raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
 
     offset = (page - 1) * limit
     today_text = date.today().isoformat()
@@ -56,6 +61,13 @@ def get_events(
 
         query = query.filter(Event.music_type.ilike(music_type_text))
 
+    if year > 0 and month > 0:
+        month_text = f"{year}-{month:02d}-%"
+        query = query.filter(Event.date.like(month_text))
+    elif year > 0:
+        year_text = f"{year}-%"
+        query = query.filter(Event.date.like(year_text))
+
     events = (
         query.order_by(Event.date.asc())
         .limit(limit)
@@ -71,14 +83,27 @@ def get_events(
     return result
 
 @router.get("/public-events")
-def get_public_events(year: int, db: Session = Depends(get_db)):
+def get_public_events(
+    year: int,
+    month: int = Query(default=0), 
+    db: Session = Depends(get_db)
+):
+    if month < 0 or month > 12:
+        raise HTTPException(
+            status_code=400, 
+            detail="Month must be between 1 and 12"
+        )
 
-    year_text = f"{year}-%"
     today_text = date.today().isoformat()
+
+    if month > 0:
+        date_text = f"{year}-{month:02d}-%"
+    else:
+        date_text = f"{year}-%"
 
     events = (
         db.query(Event)
-        .filter(Event.date.like(year_text))
+        .filter(Event.date.like(date_text))
         .filter(Event.date >= today_text)
         .filter(Event.is_verified == 1)
         .filter(Event.source_name == "Ticketmaster")
