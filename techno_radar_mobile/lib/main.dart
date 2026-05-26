@@ -714,6 +714,7 @@ class _EventListPageState extends State<EventListPage> {
   final searchController = TextEditingController();
 
   String selectedCity = "";
+  String selectedMusicType = "";
 
   int page = 1;
   final int limit = 5;
@@ -750,6 +751,10 @@ class _EventListPageState extends State<EventListPage> {
 
     if (selectedCity.isNotEmpty) {
       url += "&city=${Uri.encodeComponent(selectedCity)}";
+    }
+
+    if (selectedMusicType.isNotEmpty) {
+      url += "&music_type=${Uri.encodeComponent(selectedMusicType)}";
     }
 
     final response = await http.get(
@@ -805,6 +810,15 @@ class _EventListPageState extends State<EventListPage> {
   void changeCity(String? value) {
     setState(() {
       selectedCity = value ?? "";
+      page = 1;
+    });
+
+    fetchEvents();
+  }
+
+  void changeMusicType(String? value) {
+    setState(() {
+      selectedMusicType = value ?? "";
       page = 1;
     });
 
@@ -1119,7 +1133,7 @@ class _EventListPageState extends State<EventListPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
               child: DropdownButtonFormField<String>(
                 value: selectedCity,
                 decoration: const InputDecoration(
@@ -1161,6 +1175,83 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                 ],
                 onChanged: changeCity,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: DropdownButtonFormField<String>(
+                value: selectedMusicType,
+                decoration: const InputDecoration(
+                  labelText: "Filtruj po typie muzyki",
+                  prefixIcon: Icon(Icons.music_note),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: "",
+                    child: Text("Wszystkie typy"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Techno",
+                    child: Text("Techno"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Hard Techno",
+                    child: Text("Hard Techno"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Acid Techno",
+                    child: Text("Acid Techno"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Minimal",
+                    child: Text("Minimal"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Industrial Techno",
+                    child: Text("Industrial Techno"),
+                  ),
+                  DropdownMenuItem(
+                    value: "House",
+                    child: Text("House"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Tech House",
+                    child: Text("Tech House"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Deep House",
+                    child: Text("Deep House"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Trance",
+                    child: Text("Trance"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Psytrance",
+                    child: Text("Psytrance"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Drum and Bass",
+                    child: Text("Drum and Bass"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Dubstep",
+                    child: Text("Dubstep"),
+                  ),
+                  DropdownMenuItem(
+                    value: "EDM",
+                    child: Text("EDM"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Rave",
+                    child: Text("Rave"),
+                  ),
+                  DropdownMenuItem(
+                    value: "Electronic",
+                    child: Text("Electronic"),
+                  ),
+                ],
+                onChanged: changeMusicType,
               ),
             ),
             Expanded(
