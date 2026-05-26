@@ -7,6 +7,7 @@ from models import Event, UserEvent
 from schemas import EventCreate
 from core.security import get_current_user, is_admin
 from services.event_response_service import build_event_response
+from datetime import date
 
 router = APIRouter()
 
@@ -27,11 +28,13 @@ def get_events(
         limit = 5
 
     offset = (page - 1) * limit
+    today_text = date.today().isoformat()
 
     query = (
         db.query(Event)
         .filter(Event.source_name == "Ticketmaster")
         .filter(Event.is_verified == 1)
+        .filter(Event.date >= today_text)
     )
 
     if search.strip() != "":
@@ -71,10 +74,12 @@ def get_events(
 def get_public_events(year: int, db: Session = Depends(get_db)):
 
     year_text = f"{year}-%"
+    today_text = date.today().isoformat()
 
     events = (
         db.query(Event)
         .filter(Event.date.like(year_text))
+        .filter(Event.date >= today_text)
         .filter(Event.is_verified == 1)
         .filter(Event.source_name == "Ticketmaster")
         .order_by(Event.date.asc())
