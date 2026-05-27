@@ -54,37 +54,68 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
-        primaryColor: Colors.deepPurple,
+        primaryColor: Colors.deepPurpleAccent,
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.black.withOpacity(0.85),
+          backgroundColor: Colors.black.withOpacity(0.92),
           elevation: 0,
           centerTitle: false,
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 21,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.4,
+          ),
         ),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: Colors.deepPurpleAccent,
           brightness: Brightness.dark,
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.black.withOpacity(0.35),
+          fillColor: Colors.black.withOpacity(0.42),
+          labelStyle: const TextStyle(color: Colors.white70),
+          hintStyle: const TextStyle(color: Colors.white38),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.20)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.16)),
           ),
-          focusedBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
-            borderSide: BorderSide(color: Colors.deepPurple, width: 1.5),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(16)),
+            borderSide: BorderSide(
+              color: Colors.deepPurpleAccent.withOpacity(0.9),
+              width: 1.5,
+            ),
           ),
         ),
         cardTheme: CardThemeData(
           color: Colors.black.withOpacity(0.72),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(22),
           ),
-          elevation: 6,
+          elevation: 8,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurpleAccent,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.white,
+            side: BorderSide(color: Colors.deepPurpleAccent.withOpacity(0.8)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
         ),
       ),
       home: isLoggedIn ? const EventListPage() : const LoginPage(),
@@ -168,6 +199,120 @@ String eventDaysUntil(Map event) {
   return (event["days_until"] ?? "").toString();
 }
 
+String eventSourceName(Map event) {
+  final source = (event["source_name"] ?? "").toString();
+
+  if (source == "manual") {
+    return "Dodany ręcznie";
+  }
+
+  if (source == "Ticketmaster") {
+    return "Ticketmaster";
+  }
+
+  if (source.isEmpty) {
+    return "Nieznane źródło";
+  }
+
+  return source;
+}
+
+String eventMusicTypeName(Map event) {
+  final type = (event["music_type"] ?? "").toString();
+
+  if (type == "Electronic") {
+    return "Muzyka elektroniczna";
+  }
+
+  return type;
+}
+
+List<DropdownMenuItem<int>> yearDropdownItems() {
+  return const [
+    DropdownMenuItem(
+      value: 0,
+      child: Text("Wszystkie lata"),
+    ),
+    DropdownMenuItem(
+      value: 2024,
+      child: Text("2024"),
+    ),
+    DropdownMenuItem(
+      value: 2025,
+      child: Text("2025"),
+    ),
+    DropdownMenuItem(
+      value: 2026,
+      child: Text("2026"),
+    ),
+    DropdownMenuItem(
+      value: 2027,
+      child: Text("2027"),
+    ),
+    DropdownMenuItem(
+      value: 2028,
+      child: Text("2028"),
+    ),
+  ];
+}
+
+List<DropdownMenuItem<int>> monthDropdownItems() {
+  return const [
+    DropdownMenuItem(
+      value: 0,
+      child: Text("Wszystkie miesiące"),
+    ),
+    DropdownMenuItem(
+      value: 1,
+      child: Text("Styczeń"),
+    ),
+    DropdownMenuItem(
+      value: 2,
+      child: Text("Luty"),
+    ),
+    DropdownMenuItem(
+      value: 3,
+      child: Text("Marzec"),
+    ),
+    DropdownMenuItem(
+      value: 4,
+      child: Text("Kwiecień"),
+    ),
+    DropdownMenuItem(
+      value: 5,
+      child: Text("Maj"),
+    ),
+    DropdownMenuItem(
+      value: 6,
+      child: Text("Czerwiec"),
+    ),
+    DropdownMenuItem(
+      value: 7,
+      child: Text("Lipiec"),
+    ),
+    DropdownMenuItem(
+      value: 8,
+      child: Text("Sierpień"),
+    ),
+    DropdownMenuItem(
+      value: 9,
+      child: Text("Wrzesień"),
+    ),
+    DropdownMenuItem(
+      value: 10,
+      child: Text("Październik"),
+    ),
+    DropdownMenuItem(
+      value: 11,
+      child: Text("Listopad"),
+    ),
+    DropdownMenuItem(
+      value: 12,
+      child: Text("Grudzień"),
+    ),
+  ];
+}
+
 Future<void> handleUnauthorized(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -189,6 +334,8 @@ Future<void> handleUnauthorized(BuildContext context) async {
   );
 }
 
+/* ================= COMMON WIDGETS ================= */
+
 class MusicBackground extends StatelessWidget {
   final Widget child;
 
@@ -209,7 +356,16 @@ class MusicBackground extends StatelessWidget {
         ),
         Positioned.fill(
           child: Container(
-            color: Colors.black.withOpacity(0.78),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.82),
+                  Colors.black.withOpacity(0.92),
+                ],
+              ),
+            ),
           ),
         ),
         child,
@@ -236,15 +392,15 @@ class GlassPanel extends StatelessWidget {
       width: width,
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.58),
-        borderRadius: BorderRadius.circular(22),
+        color: Colors.black.withOpacity(0.64),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.white.withOpacity(0.12),
+          color: Colors.deepPurpleAccent.withOpacity(0.22),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.22),
-            blurRadius: 24,
+            color: Colors.deepPurpleAccent.withOpacity(0.18),
+            blurRadius: 28,
             spreadRadius: 2,
           ),
         ],
@@ -252,6 +408,82 @@ class GlassPanel extends StatelessWidget {
       child: child,
     );
   }
+}
+
+Widget neonTag({
+  required String text,
+  IconData? icon,
+  Color color = Colors.deepPurpleAccent,
+}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.18),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: color.withOpacity(0.55)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) Icon(icon, size: 15, color: color),
+        if (icon != null) const SizedBox(width: 5),
+        Text(
+          text,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.92),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget emptyState({
+  required IconData icon,
+  required String title,
+  required String subtitle,
+  Widget? action,
+}) {
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: GlassPanel(
+        width: 430,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 56,
+              color: Colors.deepPurpleAccent,
+            ),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.68),
+                height: 1.35,
+              ),
+            ),
+            if (action != null) const SizedBox(height: 18),
+            if (action != null) action,
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 /* ================= IMAGE HELPER ================= */
@@ -265,13 +497,13 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.78),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.deepPurple.withOpacity(0.45),
+          color: Colors.deepPurpleAccent.withOpacity(0.38),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.18),
+            color: Colors.deepPurpleAccent.withOpacity(0.12),
             blurRadius: 18,
           ),
         ],
@@ -281,46 +513,52 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.deepPurple.withOpacity(0.35),
-                    Colors.black.withOpacity(0.80),
-                    Colors.blueAccent.withOpacity(0.20),
+                    Colors.deepPurpleAccent.withOpacity(0.28),
+                    Colors.black.withOpacity(0.88),
+                    Colors.blueAccent.withOpacity(0.16),
                   ],
                 ),
               ),
             ),
           ),
-          const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.graphic_eq,
-                  size: 58,
-                  color: Colors.deepPurpleAccent,
-                ),
-                SizedBox(height: 12),
-                Text(
-                  "Brak zdjęcia z Ticketmastera",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w700,
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.graphic_eq,
+                    size: 58,
+                    color: Colors.deepPurpleAccent,
                   ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  "Techno Radar",
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 12,
-                    letterSpacing: 1.2,
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Brak zdjęcia wydarzenia",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    "Organizator nie udostępnił grafiki dla tego wydarzenia.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.60),
+                      fontSize: 12,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -333,13 +571,13 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
     width: double.infinity,
     decoration: BoxDecoration(
       color: Colors.black,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       border: Border.all(color: Colors.white10),
     ),
     clipBehavior: Clip.antiAlias,
     child: Image.network(
       normalizedUrl,
-      fit: BoxFit.fill,
+      fit: BoxFit.cover,
       alignment: Alignment.center,
       errorBuilder: (context, error, stackTrace) {
         return Container(
@@ -349,7 +587,7 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.music_note,
+                  Icons.broken_image,
                   size: 56,
                   color: Colors.deepPurpleAccent,
                 ),
@@ -496,7 +734,7 @@ class _LoginPageState extends State<LoginPage> {
       switchOutCurve: Curves.easeIn,
       child: ClipRRect(
         key: ValueKey<bool>(eyesOpen),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: Image.asset(
           eyesOpen ? AppAssets.loginOpen : AppAssets.loginClosed,
           height: imageHeight,
@@ -549,12 +787,13 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(height: isSmallScreen ? 6 : 8),
                     Text(
                       eyesOpen
-                          ? "Zalogowano. Witaj w radarze."
-                          : "Zaloguj się i odkrywaj eventy techno w całej Polsce",
+                          ? "Zalogowano. Witaj w radarze wydarzeń."
+                          : "Znajdź wydarzenia techno w Polsce, zapisz ulubione i sprawdź bilety.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.75),
                         fontSize: isSmallScreen ? 13 : 14,
+                        height: 1.35,
                       ),
                     ),
                     SizedBox(height: isSmallScreen ? 16 : 26),
@@ -590,7 +829,7 @@ class _LoginPageState extends State<LoginPage> {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Text("Zaloguj"),
+                            : const Text("Zaloguj się"),
                       ),
                     ),
                     SizedBox(height: isSmallScreen ? 4 : 8),
@@ -679,7 +918,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(20),
                       child: Image.asset(
                         AppAssets.loginClosed,
                         height: isSmallScreen ? 160 : 210,
@@ -726,7 +965,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: register,
-                        child: const Text("Zarejestruj"),
+                        child: const Text("Zarejestruj się"),
                       ),
                     ),
                   ],
@@ -757,10 +996,14 @@ class _EventListPageState extends State<EventListPage> {
   String selectedCity = "";
   String selectedMusicType = "";
 
+  int selectedYear = 0;
+  int selectedMonth = 0;
+
   int page = 1;
   final int limit = 5;
   bool isLoading = false;
   bool isAdmin = false;
+  bool filtersExpanded = true;
 
   @override
   void initState() {
@@ -796,6 +1039,14 @@ class _EventListPageState extends State<EventListPage> {
 
     if (selectedMusicType.isNotEmpty) {
       url += "&music_type=${Uri.encodeComponent(selectedMusicType)}";
+    }
+
+    if (selectedYear > 0) {
+      url += "&year=$selectedYear";
+    }
+
+    if (selectedYear > 0 && selectedMonth > 0) {
+      url += "&month=$selectedMonth";
     }
 
     final response = await http.get(
@@ -872,6 +1123,45 @@ class _EventListPageState extends State<EventListPage> {
   void changeMusicType(String? value) {
     setState(() {
       selectedMusicType = value ?? "";
+      page = 1;
+    });
+
+    fetchEvents();
+  }
+
+  void changeYear(int? value) {
+    setState(() {
+      selectedYear = value ?? 0;
+      page = 1;
+
+      if (selectedYear == 0) {
+        selectedMonth = 0;
+      }
+    });
+
+    fetchEvents();
+  }
+
+  void changeMonth(int? value) {
+    setState(() {
+      selectedMonth = value ?? 0;
+      page = 1;
+
+      if (selectedMonth > 0 && selectedYear == 0) {
+        selectedYear = DateTime.now().year;
+      }
+    });
+
+    fetchEvents();
+  }
+
+  void clearFilters() {
+    setState(() {
+      searchController.clear();
+      selectedCity = "";
+      selectedMusicType = "";
+      selectedYear = 0;
+      selectedMonth = 0;
       page = 1;
     });
 
@@ -958,89 +1248,133 @@ class _EventListPageState extends State<EventListPage> {
   }
 
   Color getColor(String type) {
-    if (type == "Techno") return Colors.deepPurple;
-    if (type == "Hard Techno") return Colors.red;
-    if (type == "Acid Techno") return Colors.green;
-    if (type == "Minimal") return Colors.orange;
+    if (type == "Techno") return Colors.deepPurpleAccent;
+    if (type == "Hard Techno") return Colors.redAccent;
+    if (type == "Acid Techno") return Colors.greenAccent;
+    if (type == "Minimal") return Colors.orangeAccent;
     if (type == "Industrial Techno") return Colors.blueGrey;
-    if (type == "House") return Colors.pink;
-    if (type == "Tech House") return Colors.teal;
+    if (type == "House") return Colors.pinkAccent;
+    if (type == "Tech House") return Colors.tealAccent;
     if (type == "Deep House") return Colors.purpleAccent;
-    if (type == "Trance") return Colors.blue;
+    if (type == "Trance") return Colors.blueAccent;
     if (type == "Psytrance") return Colors.lightBlueAccent;
-    if (type == "Drum and Bass") return Colors.lime;
-    if (type == "Dubstep") return Colors.indigo;
-    if (type == "EDM") return Colors.cyan;
-    if (type == "Rave") return Colors.deepOrange;
+    if (type == "Drum and Bass") return Colors.limeAccent;
+    if (type == "Dubstep") return Colors.indigoAccent;
+    if (type == "EDM") return Colors.cyanAccent;
+    if (type == "Rave") return Colors.deepOrangeAccent;
     if (type == "Electronic") return Colors.deepPurpleAccent;
-    return Colors.deepPurple;
+    return Colors.deepPurpleAccent;
   }
 
   Widget eventCard(Map event) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.72),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+    final musicType = event["music_type"] ?? "";
+    final accentColor = getColor(musicType);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: accentColor.withOpacity(0.34)),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withOpacity(0.10),
+            blurRadius: 22,
+            spreadRadius: 1,
+          ),
+        ],
       ),
-      elevation: 5,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => goDetails(event),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              eventImage(event["image_url"], height: 190),
-              const SizedBox(height: 12),
-              Text(
-                event["name"] ?? "",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+      child: Card(
+        margin: EdgeInsets.zero,
+        color: Colors.black.withOpacity(0.76),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        elevation: 0,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () => goDetails(event),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                eventImage(event["image_url"], height: 190),
+                const SizedBox(height: 14),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        event["name"] ?? "",
+                        style: const TextStyle(
+                          fontSize: 21,
+                          height: 1.15,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    neonTag(
+                      text: eventMusicTypeName(event),
+                      icon: Icons.music_note,
+                      color: accentColor,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text("📍 ${eventCityName(event)}"),
-              Text("📅 ${eventDateWithDay(event)}"),
-              if (eventDaysUntil(event).isNotEmpty)
-                Text("⏳ ${eventDaysUntil(event)}"),
-              Text("🏢 ${event["club"] ?? ""}"),
-              const SizedBox(height: 10),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: getColor(event["music_type"] ?? ""),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  event["music_type"] ?? "",
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.info_outline),
-                    onPressed: () => goDetails(event),
+                const SizedBox(height: 10),
+                Text(
+                  "${eventCityName(event)} • ${event["club"] ?? ""}",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.78),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
-                  if (isAdmin)
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => goEdit(event),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    neonTag(
+                      text: eventDateWithDay(event),
+                      icon: Icons.calendar_month,
+                      color: Colors.deepPurpleAccent,
                     ),
-                  if (isAdmin)
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => deleteEvent(event["id"]),
+                    if (eventDaysUntil(event).isNotEmpty)
+                      neonTag(
+                        text: eventDaysUntil(event),
+                        icon: Icons.hourglass_bottom,
+                        color: Colors.cyanAccent,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => goDetails(event),
+                        icon: const Icon(Icons.info_outline),
+                        label: const Text("Szczegóły"),
+                      ),
                     ),
-                ],
-              ),
-            ],
+                    if (isAdmin) const SizedBox(width: 8),
+                    if (isAdmin)
+                      IconButton(
+                        tooltip: "Edytuj wydarzenie",
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => goEdit(event),
+                      ),
+                    if (isAdmin)
+                      IconButton(
+                        tooltip: "Usuń wydarzenie",
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => deleteEvent(event["id"]),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1050,7 +1384,7 @@ class _EventListPageState extends State<EventListPage> {
   Widget paginationBar() {
     return Container(
       padding: const EdgeInsets.all(10),
-      color: Colors.black.withOpacity(0.45),
+      color: Colors.black.withOpacity(0.55),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1075,21 +1409,27 @@ class _EventListPageState extends State<EventListPage> {
 
   Widget welcomeBanner() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.58),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.10)),
+        color: Colors.black.withOpacity(0.66),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.22)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurpleAccent.withOpacity(0.12),
+            blurRadius: 24,
+          ),
+        ],
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(18),
             child: Image.asset(
               AppAssets.loginOpen,
-              width: 90,
-              height: 90,
+              width: 92,
+              height: 92,
               fit: BoxFit.cover,
             ),
           ),
@@ -1099,24 +1439,226 @@ class _EventListPageState extends State<EventListPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Witaj w Techno Radar",
+                  "Odkrywaj wydarzenia techno w Polsce",
                   style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    height: 1.15,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   isAdmin
-                      ? "Masz dostęp administratora. Możesz zarządzać eventami i importem."
-                      : "Przeglądaj wydarzenia, zapisuj ulubione i odkrywaj nowe brzmienia.",
+                      ? "Tryb administratora: zarządzaj wydarzeniami, importem i zatwierdzaniem."
+                      : "Znajdź najbliższe imprezy, sprawdź bilety i zapisuj ulubione wydarzenia.",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.80),
+                    color: Colors.white.withOpacity(0.74),
+                    height: 1.35,
                   ),
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget filtersPanel() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.62),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withOpacity(0.10)),
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.tune, color: Colors.deepPurpleAccent),
+            title: const Text(
+              "Filtry wydarzeń",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: const Text(
+              "Dopasuj listę do miasta, gatunku i terminu.",
+              style: TextStyle(color: Colors.white54),
+            ),
+            trailing: IconButton(
+              icon: Icon(
+                filtersExpanded ? Icons.expand_less : Icons.expand_more,
+              ),
+              onPressed: () {
+                setState(() {
+                  filtersExpanded = !filtersExpanded;
+                });
+              },
+            ),
+          ),
+          if (filtersExpanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: searchController,
+                    onChanged: searchEvents,
+                    decoration: const InputDecoration(
+                      hintText:
+                          "Szukaj po nazwie, mieście, miejscu lub gatunku",
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: selectedCity,
+                    decoration: const InputDecoration(
+                      labelText: "Miasto",
+                      prefixIcon: Icon(Icons.location_city),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: "",
+                        child: Text("Wszystkie miasta"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Warsaw",
+                        child: Text("Warszawa"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Kraków",
+                        child: Text("Kraków"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Wrocław",
+                        child: Text("Wrocław"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Gdańsk",
+                        child: Text("Gdańsk"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Katowice",
+                        child: Text("Katowice"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Poznań",
+                        child: Text("Poznań"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Łódź",
+                        child: Text("Łódź"),
+                      ),
+                    ],
+                    onChanged: changeCity,
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: selectedMusicType,
+                    decoration: const InputDecoration(
+                      labelText: "Gatunek muzyki",
+                      prefixIcon: Icon(Icons.music_note),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: "",
+                        child: Text("Wszystkie gatunki"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Techno",
+                        child: Text("Techno"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Hard Techno",
+                        child: Text("Hard Techno"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Acid Techno",
+                        child: Text("Acid Techno"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Minimal",
+                        child: Text("Minimal"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Industrial Techno",
+                        child: Text("Industrial Techno"),
+                      ),
+                      DropdownMenuItem(
+                        value: "House",
+                        child: Text("House"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Tech House",
+                        child: Text("Tech House"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Deep House",
+                        child: Text("Deep House"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Trance",
+                        child: Text("Trance"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Psytrance",
+                        child: Text("Psytrance"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Drum and Bass",
+                        child: Text("Drum and Bass"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Dubstep",
+                        child: Text("Dubstep"),
+                      ),
+                      DropdownMenuItem(
+                        value: "EDM",
+                        child: Text("EDM"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Rave",
+                        child: Text("Rave"),
+                      ),
+                      DropdownMenuItem(
+                        value: "Electronic",
+                        child: Text("Muzyka elektroniczna"),
+                      ),
+                    ],
+                    onChanged: changeMusicType,
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    value: selectedYear,
+                    decoration: const InputDecoration(
+                      labelText: "Rok",
+                      prefixIcon: Icon(Icons.calendar_today),
+                    ),
+                    items: yearDropdownItems(),
+                    onChanged: changeYear,
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    value: selectedMonth,
+                    decoration: const InputDecoration(
+                      labelText: "Miesiąc",
+                      prefixIcon: Icon(Icons.date_range),
+                    ),
+                    items: monthDropdownItems(),
+                    onChanged: changeMonth,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: clearFilters,
+                      icon: const Icon(Icons.restart_alt),
+                      label: const Text("Wyczyść filtry"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -1136,17 +1678,17 @@ class _EventListPageState extends State<EventListPage> {
         actions: [
           if (isAdmin)
             IconButton(
-              tooltip: "Eventy do zatwierdzenia",
+              tooltip: "Wydarzenia do zatwierdzenia",
               onPressed: goPendingImportedEvents,
               icon: const Icon(Icons.fact_check),
             ),
           IconButton(
-            tooltip: "Publiczne eventy",
+            tooltip: "Wszystkie wydarzenia",
             onPressed: goPublicEvents,
             icon: const Icon(Icons.public),
           ),
           IconButton(
-            tooltip: "Moje eventy",
+            tooltip: "Moje wydarzenia",
             onPressed: goMyEvents,
             icon: const Icon(Icons.favorite),
           ),
@@ -1161,162 +1703,20 @@ class _EventListPageState extends State<EventListPage> {
         child: Column(
           children: [
             welcomeBanner(),
-            if (isAdmin)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(12, 6, 12, 8),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Text(
-                  "Tryb administratora: możesz dodawać, edytować, usuwać i zatwierdzać eventy.",
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: TextField(
-                controller: searchController,
-                onChanged: searchEvents,
-                decoration: const InputDecoration(
-                  hintText:
-                      "Szukaj po nazwie, mieście, klubie lub typie muzyki",
-                  prefixIcon: Icon(Icons.search),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-              child: DropdownButtonFormField<String>(
-                value: selectedCity,
-                decoration: const InputDecoration(
-                  labelText: "Filtruj po mieście",
-                  prefixIcon: Icon(Icons.location_city),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: "",
-                    child: Text("Wszystkie miasta"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Warsaw",
-                    child: Text("Warszawa"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Kraków",
-                    child: Text("Kraków"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Wrocław",
-                    child: Text("Wrocław"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Gdańsk",
-                    child: Text("Gdańsk"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Katowice",
-                    child: Text("Katowice"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Poznań",
-                    child: Text("Poznań"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Łódź",
-                    child: Text("Łódź"),
-                  ),
-                ],
-                onChanged: changeCity,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-              child: DropdownButtonFormField<String>(
-                value: selectedMusicType,
-                decoration: const InputDecoration(
-                  labelText: "Filtruj po typie muzyki",
-                  prefixIcon: Icon(Icons.music_note),
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: "",
-                    child: Text("Wszystkie typy"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Techno",
-                    child: Text("Techno"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Hard Techno",
-                    child: Text("Hard Techno"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Acid Techno",
-                    child: Text("Acid Techno"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Minimal",
-                    child: Text("Minimal"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Industrial Techno",
-                    child: Text("Industrial Techno"),
-                  ),
-                  DropdownMenuItem(
-                    value: "House",
-                    child: Text("House"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Tech House",
-                    child: Text("Tech House"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Deep House",
-                    child: Text("Deep House"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Trance",
-                    child: Text("Trance"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Psytrance",
-                    child: Text("Psytrance"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Drum and Bass",
-                    child: Text("Drum and Bass"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Dubstep",
-                    child: Text("Dubstep"),
-                  ),
-                  DropdownMenuItem(
-                    value: "EDM",
-                    child: Text("EDM"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Rave",
-                    child: Text("Rave"),
-                  ),
-                  DropdownMenuItem(
-                    value: "Electronic",
-                    child: Text("Electronic"),
-                  ),
-                ],
-                onChanged: changeMusicType,
-              ),
-            ),
+            filtersPanel(),
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : events.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "Brak eventów",
-                            style: TextStyle(fontSize: 18),
+                      ? emptyState(
+                          icon: Icons.search_off,
+                          title: "Nie znaleziono wydarzeń",
+                          subtitle:
+                              "Zmień filtry albo wybierz inny miesiąc, aby zobaczyć więcej wydarzeń.",
+                          action: OutlinedButton.icon(
+                            onPressed: clearFilters,
+                            icon: const Icon(Icons.restart_alt),
+                            label: const Text("Wyczyść filtry"),
                           ),
                         )
                       : ListView.builder(
@@ -1331,9 +1731,10 @@ class _EventListPageState extends State<EventListPage> {
         ),
       ),
       floatingActionButton: isAdmin
-          ? FloatingActionButton(
+          ? FloatingActionButton.extended(
               onPressed: goAdd,
-              child: const Icon(Icons.add),
+              icon: const Icon(Icons.add),
+              label: const Text("Dodaj"),
             )
           : null,
     );
@@ -1360,9 +1761,12 @@ class EventDetailsPage extends StatelessWidget {
     return Card(
       color: Colors.black.withOpacity(0.68),
       child: ListTile(
-        leading: Icon(icon),
-        title: Text(label),
-        subtitle: Text(value),
+        leading: Icon(icon, color: Colors.deepPurpleAccent),
+        title: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(value.isEmpty ? "Brak informacji" : value),
       ),
     );
   }
@@ -1431,74 +1835,108 @@ class EventDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final musicType = event["music_type"] ?? "";
+    final musicType = eventMusicTypeName(event);
     final sourceUrl = (event["source_url"] ?? "").toString().trim();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Szczegóły eventu"),
+        title: const Text("Szczegóły wydarzenia"),
       ),
       body: MusicBackground(
         child: Center(
           child: Container(
-            width: 560,
-            padding: const EdgeInsets.all(20),
+            width: 620,
+            padding: const EdgeInsets.all(18),
             child: ListView(
               children: [
                 GlassPanel(
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      eventImage(event["image_url"], height: 280),
+                      eventImage(event["image_url"], height: 300),
                       const SizedBox(height: 18),
                       Text(
                         event["name"] ?? "",
-                        textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 27,
+                          height: 1.15,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          neonTag(
+                            text: eventCityName(event),
+                            icon: Icons.location_city,
+                            color: Colors.deepPurpleAccent,
+                          ),
+                          neonTag(
+                            text: musicType,
+                            icon: Icons.music_note,
+                            color: Colors.cyanAccent,
+                          ),
+                          if (eventDaysUntil(event).isNotEmpty)
+                            neonTag(
+                              text: eventDaysUntil(event),
+                              icon: Icons.hourglass_bottom,
+                              color: Colors.greenAccent,
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
                       detailRow(
                         "Miasto",
                         eventCityName(event),
                         Icons.location_city,
                       ),
                       detailRow(
-                        "Data",
+                        "Data wydarzenia",
                         eventDateWithDay(event),
                         Icons.calendar_month,
                       ),
                       if (eventDaysUntil(event).isNotEmpty)
                         detailRow(
-                          "Czas do eventu",
+                          "Czas do wydarzenia",
                           eventDaysUntil(event),
                           Icons.hourglass_bottom,
                         ),
                       detailRow(
-                        "Klub / miejsce",
+                        "Miejsce",
                         event["club"] ?? "",
                         Icons.apartment,
                       ),
                       detailRow(
-                        "Typ muzyki",
+                        "Gatunek muzyki",
                         musicType,
                         Icons.music_note,
                       ),
+                      detailRow(
+                        "Źródło informacji",
+                        eventSourceName(event),
+                        Icons.confirmation_number,
+                      ),
                       if (sourceUrl.isNotEmpty)
-                        detailRow(
-                          "Źródło",
-                          "Ticketmaster",
-                          Icons.confirmation_number,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 12),
+                          child: Text(
+                            "To wydarzenie pochodzi z Ticketmastera. Kliknij poniżej, aby przejść do strony wydarzenia i sprawdzić bilety.",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.66),
+                              height: 1.35,
+                            ),
+                          ),
                         ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () => addToMyList(context),
                           icon: const Icon(Icons.favorite),
-                          label: const Text("Dodaj do moich eventów"),
+                          label: const Text("Dodaj do moich wydarzeń"),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -1528,7 +1966,7 @@ class EventDetailsPage extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: ElevatedButton.icon(
+                              child: OutlinedButton.icon(
                                 onPressed: () async {
                                   await onDelete();
                                   Navigator.pop(context);
@@ -1630,17 +2068,17 @@ class EventForm extends StatelessWidget {
       body: MusicBackground(
         child: Center(
           child: Container(
-            width: 460,
-            padding: const EdgeInsets.all(20),
+            width: 500,
+            padding: const EdgeInsets.all(18),
             child: GlassPanel(
-              padding: const EdgeInsets.all(25),
+              padding: const EdgeInsets.all(22),
               child: ListView(
                 shrinkWrap: true,
                 children: [
                   TextField(
                     controller: name,
                     decoration: const InputDecoration(
-                      labelText: "Nazwa",
+                      labelText: "Nazwa wydarzenia",
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1655,7 +2093,7 @@ class EventForm extends StatelessWidget {
                     controller: date,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: "Data",
+                      labelText: "Data wydarzenia",
                       suffixIcon: Icon(Icons.calendar_month),
                     ),
                     onTap: () => chooseDate(context),
@@ -1664,19 +2102,21 @@ class EventForm extends StatelessWidget {
                   TextField(
                     controller: club,
                     decoration: const InputDecoration(
-                      labelText: "Klub",
+                      labelText: "Miejsce / klub",
                     ),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     value: selectedMusicType,
                     decoration: const InputDecoration(
-                      labelText: "Typ muzyki",
+                      labelText: "Gatunek muzyki",
                     ),
                     items: musicTypes.map((type) {
                       return DropdownMenuItem<String>(
                         value: type,
-                        child: Text(type),
+                        child: Text(
+                          type == "Electronic" ? "Muzyka elektroniczna" : type,
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -1687,7 +2127,7 @@ class EventForm extends StatelessWidget {
                   TextField(
                     controller: imageUrl,
                     decoration: const InputDecoration(
-                      labelText: "Link do zdjęcia / flyera",
+                      labelText: "Link do zdjęcia / grafiki",
                       hintText: "Możesz wkleić link albo wybrać plik",
                       prefixIcon: Icon(Icons.image),
                     ),
@@ -1886,8 +2326,8 @@ class _AddEventPageState extends State<AddEventPage> {
   @override
   Widget build(BuildContext context) {
     return EventForm(
-      title: "Dodaj event",
-      buttonText: "Dodaj",
+      title: "Dodaj wydarzenie",
+      buttonText: "Dodaj wydarzenie",
       name: name,
       city: city,
       date: date,
@@ -2074,8 +2514,8 @@ class _EditEventPageState extends State<EditEventPage> {
   @override
   Widget build(BuildContext context) {
     return EventForm(
-      title: "Edytuj event",
-      buttonText: "Zapisz",
+      title: "Edytuj wydarzenie",
+      buttonText: "Zapisz zmiany",
       name: name,
       city: city,
       date: date,
@@ -2100,7 +2540,8 @@ class PublicEventsPage extends StatefulWidget {
 
 class _PublicEventsPageState extends State<PublicEventsPage> {
   List events = [];
-  int year = 2026;
+  int year = DateTime.now().year;
+  int month = 0;
   bool isLoading = false;
 
   @override
@@ -2115,7 +2556,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
     });
 
     final response = await http.get(
-      Uri.parse("${ApiHelper.baseUrl}/public-events?year=$year"),
+      Uri.parse("${ApiHelper.baseUrl}/public-events?year=$year&month=$month"),
       headers: await ApiHelper.headers(),
     );
 
@@ -2165,76 +2606,160 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
   Widget publicEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.72),
+      color: Colors.black.withOpacity(0.74),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
         onTap: () => goDetails(event),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: eventImage(event["image_url"], height: 190),
-            ),
-            ListTile(
-              leading: const Icon(Icons.public),
-              title: Text(event["name"] ?? ""),
-              subtitle: Text(
-                eventDaysUntil(event).isNotEmpty
-                    ? "${eventCityName(event)} • ${eventDateWithDay(event)} • ${eventDaysUntil(event)}"
-                    : "${eventCityName(event)} • ${eventDateWithDay(event)}",
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              eventImage(event["image_url"], height: 190),
+              const SizedBox(height: 12),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  event["name"] ?? "",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    eventDaysUntil(event).isNotEmpty
+                        ? "${eventCityName(event)} • ${eventDateWithDay(event)} • ${eventDaysUntil(event)}"
+                        : "${eventCityName(event)} • ${eventDateWithDay(event)}",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ),
               ),
-              trailing: ElevatedButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text("Dodaj"),
-                onPressed: () => addToMyList(event["id"]),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.info_outline),
+                      label: const Text("Szczegóły"),
+                      onPressed: () => goDetails(event),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.favorite),
+                      label: const Text("Zapisz"),
+                      onPressed: () => addToMyList(event["id"]),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void changePublicYear(int? value) {
+    setState(() {
+      year = value ?? DateTime.now().year;
+    });
+
+    fetchPublicEvents();
+  }
+
+  void changePublicMonth(int? value) {
+    setState(() {
+      month = value ?? 0;
+    });
+
+    fetchPublicEvents();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Publiczne eventy"),
+        title: const Text("Wszystkie wydarzenia"),
       ),
       body: MusicBackground(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: DropdownButtonFormField<int>(
-                value: year,
-                decoration: const InputDecoration(
-                  labelText: "Wybierz rok",
-                ),
-                items: [2024, 2025, 2026, 2027, 2028]
-                    .map(
-                      (itemYear) => DropdownMenuItem<int>(
-                        value: itemYear,
-                        child: Text(itemYear.toString()),
+            Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.62),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white.withOpacity(0.10)),
+              ),
+              child: Column(
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.public, color: Colors.deepPurpleAccent),
+                      SizedBox(width: 8),
+                      Text(
+                        "Przeglądaj wydarzenia",
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-
-                  setState(() {
-                    year = value;
-                  });
-
-                  fetchPublicEvents();
-                },
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: year,
+                    decoration: const InputDecoration(
+                      labelText: "Rok",
+                      prefixIcon: Icon(Icons.calendar_today),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 2024,
+                        child: Text("2024"),
+                      ),
+                      DropdownMenuItem(
+                        value: 2025,
+                        child: Text("2025"),
+                      ),
+                      DropdownMenuItem(
+                        value: 2026,
+                        child: Text("2026"),
+                      ),
+                      DropdownMenuItem(
+                        value: 2027,
+                        child: Text("2027"),
+                      ),
+                      DropdownMenuItem(
+                        value: 2028,
+                        child: Text("2028"),
+                      ),
+                    ],
+                    onChanged: changePublicYear,
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    value: month,
+                    decoration: const InputDecoration(
+                      labelText: "Miesiąc",
+                      prefixIcon: Icon(Icons.date_range),
+                    ),
+                    items: monthDropdownItems(),
+                    onChanged: changePublicMonth,
+                  ),
+                ],
               ),
             ),
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : events.isEmpty
-                      ? const Center(child: Text("Brak publicznych eventów"))
+                      ? emptyState(
+                          icon: Icons.event_busy,
+                          title: "Brak wydarzeń",
+                          subtitle:
+                              "Nie znaleziono wydarzeń dla wybranego roku lub miesiąca.",
+                        )
                       : ListView.builder(
                           itemCount: events.length,
                           itemBuilder: (_, index) {
@@ -2301,7 +2826,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Błąd pobierania eventów: ${response.body}"),
+          content: Text("Błąd pobierania wydarzeń: ${response.body}"),
         ),
       );
     }
@@ -2380,7 +2905,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Event zatwierdzony")),
+        const SnackBar(content: Text("Wydarzenie zatwierdzone")),
       );
 
       fetchPendingEvents();
@@ -2408,14 +2933,14 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Event odrzucony i usunięty")),
+        const SnackBar(content: Text("Wydarzenie odrzucone i usunięte")),
       );
 
       fetchPendingEvents();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Błąd odrzucania eventu: ${response.body}"),
+          content: Text("Błąd odrzucania wydarzenia: ${response.body}"),
         ),
       );
     }
@@ -2428,9 +2953,9 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text("Odrzucić event?"),
+          title: const Text("Odrzucić wydarzenie?"),
           content: Text(
-            "Czy na pewno chcesz odrzucić i usunąć event:\n\n$eventName",
+            "Czy na pewno chcesz odrzucić i usunąć wydarzenie:\n\n$eventName",
           ),
           actions: [
             TextButton(
@@ -2459,9 +2984,9 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
   Widget pendingEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.72),
+      color: Colors.black.withOpacity(0.74),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -2474,18 +2999,19 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
               event["name"] ?? "",
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                height: 1.15,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 8),
-            Text("📍 Miasto: ${eventCityName(event)}"),
-            Text("📅 Data: ${eventDateWithDay(event)}"),
+            const SizedBox(height: 10),
+            Text("Miasto: ${eventCityName(event)}"),
+            Text("Data: ${eventDateWithDay(event)}"),
             if (eventDaysUntil(event).isNotEmpty)
-              Text("⏳ Czas do eventu: ${eventDaysUntil(event)}"),
-            Text("🏢 Klub: ${event["club"] ?? ""}"),
-            Text("🎵 Typ: ${event["music_type"] ?? ""}"),
+              Text("Czas do wydarzenia: ${eventDaysUntil(event)}"),
+            Text("Miejsce: ${event["club"] ?? ""}"),
+            Text("Gatunek muzyki: ${eventMusicTypeName(event)}"),
             const SizedBox(height: 8),
-            Text("Źródło: ${event["source_name"] ?? ""}"),
+            Text("Źródło: ${eventSourceName(event)}"),
             Text(
               "Link: ${event["source_url"] ?? ""}",
               maxLines: 2,
@@ -2527,10 +3053,10 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Eventy do zatwierdzenia"),
+        title: const Text("Wydarzenia do zatwierdzenia"),
         actions: [
           IconButton(
-            tooltip: "Importuj z Ticketmaster",
+            tooltip: "Importuj z Ticketmastera",
             onPressed: isImporting ? null : importFromTicketmaster,
             icon: isImporting
                 ? const SizedBox(
@@ -2551,11 +3077,11 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : events.isEmpty
-                ? const Center(
-                    child: Text(
-                      "Brak eventów do zatwierdzenia",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                ? emptyState(
+                    icon: Icons.fact_check,
+                    title: "Brak wydarzeń do zatwierdzenia",
+                    subtitle:
+                        "Po imporcie z Ticketmastera nowe wydarzenia pojawią się tutaj.",
                   )
                 : ListView.builder(
                     itemCount: events.length,
@@ -2653,31 +3179,53 @@ class _MyEventsPageState extends State<MyEventsPage> {
   Widget myEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.72),
+      color: Colors.black.withOpacity(0.74),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
         onTap: () => goDetails(event),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: eventImage(event["image_url"], height: 190),
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite, color: Colors.red),
-              title: Text(event["name"] ?? ""),
-              subtitle: Text(
-                eventDaysUntil(event).isNotEmpty
-                    ? "${eventCityName(event)} • ${eventDateWithDay(event)} • ${eventDaysUntil(event)}"
-                    : "${eventCityName(event)} • ${eventDateWithDay(event)}",
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              eventImage(event["image_url"], height: 190),
+              const SizedBox(height: 12),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.favorite, color: Colors.redAccent),
+                title: Text(
+                  event["name"] ?? "",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  eventDaysUntil(event).isNotEmpty
+                      ? "${eventCityName(event)} • ${eventDateWithDay(event)} • ${eventDaysUntil(event)}"
+                      : "${eventCityName(event)} • ${eventDateWithDay(event)}",
+                ),
               ),
-              trailing: ElevatedButton.icon(
-                icon: const Icon(Icons.delete),
-                label: const Text("Usuń"),
-                onPressed: () => removeFromMyList(event["id"]),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.info_outline),
+                      label: const Text("Szczegóły"),
+                      onPressed: () => goDetails(event),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete),
+                      label: const Text("Usuń"),
+                      onPressed: () => removeFromMyList(event["id"]),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -2687,13 +3235,18 @@ class _MyEventsPageState extends State<MyEventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Moje eventy"),
+        title: const Text("Moje wydarzenia"),
       ),
       body: MusicBackground(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : events.isEmpty
-                ? const Center(child: Text("Brak eventów na Twojej liście"))
+                ? emptyState(
+                    icon: Icons.favorite_border,
+                    title: "Nie masz zapisanych wydarzeń",
+                    subtitle:
+                        "Dodaj wydarzenie do swojej listy, aby łatwo wrócić do niego później.",
+                  )
                 : ListView.builder(
                     itemCount: events.length,
                     itemBuilder: (_, index) {
