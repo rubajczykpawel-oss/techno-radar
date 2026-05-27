@@ -168,6 +168,92 @@ String eventDaysUntil(Map event) {
   return (event["days_until"] ?? "").toString();
 }
 
+List<DropdownMenuItem<int>> yearDropdownItems() {
+  return const [
+    DropdownMenuItem(
+      value: 0,
+      child: Text("Wszystkie lata"),
+    ),
+    DropdownMenuItem(
+      value: 2024,
+      child: Text("2024"),
+    ),
+    DropdownMenuItem(
+      value: 2025,
+      child: Text("2025"),
+    ),
+    DropdownMenuItem(
+      value: 2026,
+      child: Text("2026"),
+    ),
+    DropdownMenuItem(
+      value: 2027,
+      child: Text("2027"),
+    ),
+    DropdownMenuItem(
+      value: 2028,
+      child: Text("2028"),
+    ),
+  ];
+}
+
+List<DropdownMenuItem<int>> monthDropdownItems() {
+  return const [
+    DropdownMenuItem(
+      value: 0,
+      child: Text("Wszystkie miesiące"),
+    ),
+    DropdownMenuItem(
+      value: 1,
+      child: Text("Styczeń"),
+    ),
+    DropdownMenuItem(
+      value: 2,
+      child: Text("Luty"),
+    ),
+    DropdownMenuItem(
+      value: 3,
+      child: Text("Marzec"),
+    ),
+    DropdownMenuItem(
+      value: 4,
+      child: Text("Kwiecień"),
+    ),
+    DropdownMenuItem(
+      value: 5,
+      child: Text("Maj"),
+    ),
+    DropdownMenuItem(
+      value: 6,
+      child: Text("Czerwiec"),
+    ),
+    DropdownMenuItem(
+      value: 7,
+      child: Text("Lipiec"),
+    ),
+    DropdownMenuItem(
+      value: 8,
+      child: Text("Sierpień"),
+    ),
+    DropdownMenuItem(
+      value: 9,
+      child: Text("Wrzesień"),
+    ),
+    DropdownMenuItem(
+      value: 10,
+      child: Text("Październik"),
+    ),
+    DropdownMenuItem(
+      value: 11,
+      child: Text("Listopad"),
+    ),
+    DropdownMenuItem(
+      value: 12,
+      child: Text("Grudzień"),
+    ),
+  ];
+}
+
 Future<void> handleUnauthorized(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -757,6 +843,9 @@ class _EventListPageState extends State<EventListPage> {
   String selectedCity = "";
   String selectedMusicType = "";
 
+  int selectedYear = 0;
+  int selectedMonth = 0;
+
   int page = 1;
   final int limit = 5;
   bool isLoading = false;
@@ -796,6 +885,14 @@ class _EventListPageState extends State<EventListPage> {
 
     if (selectedMusicType.isNotEmpty) {
       url += "&music_type=${Uri.encodeComponent(selectedMusicType)}";
+    }
+
+    if (selectedYear > 0) {
+      url += "&year=$selectedYear";
+    }
+
+    if (selectedYear > 0 && selectedMonth > 0) {
+      url += "&month=$selectedMonth";
     }
 
     final response = await http.get(
@@ -873,6 +970,32 @@ class _EventListPageState extends State<EventListPage> {
     setState(() {
       selectedMusicType = value ?? "";
       page = 1;
+    });
+
+    fetchEvents();
+  }
+
+  void changeYear(int? value) {
+    setState(() {
+      selectedYear = value ?? 0;
+      page = 1;
+
+      if (selectedYear == 0) {
+        selectedMonth = 0;
+      }
+    });
+
+    fetchEvents();
+  }
+
+  void changeMonth(int? value) {
+    setState(() {
+      selectedMonth = value ?? 0;
+      page = 1;
+
+      if (selectedMonth > 0 && selectedYear == 0) {
+        selectedYear = DateTime.now().year;
+      }
     });
 
     fetchEvents();
@@ -1233,7 +1356,7 @@ class _EventListPageState extends State<EventListPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
               child: DropdownButtonFormField<String>(
                 value: selectedMusicType,
                 decoration: const InputDecoration(
@@ -1307,6 +1430,30 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                 ],
                 onChanged: changeMusicType,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+              child: DropdownButtonFormField<int>(
+                value: selectedYear,
+                decoration: const InputDecoration(
+                  labelText: "Filtruj po roku",
+                  prefixIcon: Icon(Icons.calendar_today),
+                ),
+                items: yearDropdownItems(),
+                onChanged: changeYear,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: DropdownButtonFormField<int>(
+                value: selectedMonth,
+                decoration: const InputDecoration(
+                  labelText: "Filtruj po miesiącu",
+                  prefixIcon: Icon(Icons.date_range),
+                ),
+                items: monthDropdownItems(),
+                onChanged: changeMonth,
               ),
             ),
             Expanded(
@@ -2100,7 +2247,8 @@ class PublicEventsPage extends StatefulWidget {
 
 class _PublicEventsPageState extends State<PublicEventsPage> {
   List events = [];
-  int year = 2026;
+  int year = DateTime.now().year;
+  int month = 0;
   bool isLoading = false;
 
   @override
@@ -2115,7 +2263,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
     });
 
     final response = await http.get(
-      Uri.parse("${ApiHelper.baseUrl}/public-events?year=$year"),
+      Uri.parse("${ApiHelper.baseUrl}/public-events?year=$year&month=$month"),
       headers: await ApiHelper.headers(),
     );
 
@@ -2195,6 +2343,22 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
     );
   }
 
+  void changePublicYear(int? value) {
+    setState(() {
+      year = value ?? DateTime.now().year;
+    });
+
+    fetchPublicEvents();
+  }
+
+  void changePublicMonth(int? value) {
+    setState(() {
+      month = value ?? 0;
+    });
+
+    fetchPublicEvents();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2205,29 +2369,48 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
               child: DropdownButtonFormField<int>(
                 value: year,
                 decoration: const InputDecoration(
                   labelText: "Wybierz rok",
+                  prefixIcon: Icon(Icons.calendar_today),
                 ),
-                items: [2024, 2025, 2026, 2027, 2028]
-                    .map(
-                      (itemYear) => DropdownMenuItem<int>(
-                        value: itemYear,
-                        child: Text(itemYear.toString()),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-
-                  setState(() {
-                    year = value;
-                  });
-
-                  fetchPublicEvents();
-                },
+                items: const [
+                  DropdownMenuItem(
+                    value: 2024,
+                    child: Text("2024"),
+                  ),
+                  DropdownMenuItem(
+                    value: 2025,
+                    child: Text("2025"),
+                  ),
+                  DropdownMenuItem(
+                    value: 2026,
+                    child: Text("2026"),
+                  ),
+                  DropdownMenuItem(
+                    value: 2027,
+                    child: Text("2027"),
+                  ),
+                  DropdownMenuItem(
+                    value: 2028,
+                    child: Text("2028"),
+                  ),
+                ],
+                onChanged: changePublicYear,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: DropdownButtonFormField<int>(
+                value: month,
+                decoration: const InputDecoration(
+                  labelText: "Wybierz miesiąc",
+                  prefixIcon: Icon(Icons.date_range),
+                ),
+                items: monthDropdownItems(),
+                onChanged: changePublicMonth,
               ),
             ),
             Expanded(
