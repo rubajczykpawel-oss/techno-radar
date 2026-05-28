@@ -39,9 +39,9 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Użytkownik już istnieje")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Użytkownik już istnieje")));
     }
   }
 
@@ -59,9 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final isSmallScreen = screenWidth < 520;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Rejestracja"),
-      ),
+      appBar: AppBar(title: const Text("Rejestracja")),
       body: MusicBackground(
         child: SafeArea(
           child: Center(

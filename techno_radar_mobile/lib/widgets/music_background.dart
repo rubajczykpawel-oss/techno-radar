@@ -5,20 +5,14 @@ import '../constants/app_assets.dart';
 class MusicBackground extends StatelessWidget {
   final Widget child;
 
-  const MusicBackground({
-    super.key,
-    required this.child,
-  });
+  const MusicBackground({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Positioned.fill(
-          child: Image.asset(
-            AppAssets.electronicBackground,
-            fit: BoxFit.cover,
-          ),
+          child: Image.asset(AppAssets.electronicBackground, fit: BoxFit.cover),
         ),
         Positioned.fill(
           child: Container(

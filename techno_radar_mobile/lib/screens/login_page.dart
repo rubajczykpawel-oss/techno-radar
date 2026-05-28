@@ -94,9 +94,9 @@ class _LoginPageState extends State<LoginPage> {
           eyesOpen = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Błędne dane logowania")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Błędne dane logowania")));
       }
     } catch (error) {
       if (!mounted) return;
@@ -106,9 +106,9 @@ class _LoginPageState extends State<LoginPage> {
         eyesOpen = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Błąd połączenia: $error")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Błąd połączenia: $error")));
     }
   }
 

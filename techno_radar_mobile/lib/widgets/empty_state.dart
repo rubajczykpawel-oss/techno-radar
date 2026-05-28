@@ -16,19 +16,12 @@ Widget emptyState({
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 56,
-              color: Colors.deepPurpleAccent,
-            ),
+            Icon(icon, size: 56, color: Colors.deepPurpleAccent),
             const SizedBox(height: 14),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -39,10 +32,7 @@ Widget emptyState({
                 height: 1.35,
               ),
             ),
-            if (action != null) ...[
-              const SizedBox(height: 18),
-              action,
-            ],
+            if (action != null) ...[const SizedBox(height: 18), action],
           ],
         ),
       ),

@@ -30,10 +30,7 @@ class EventDetailsPage extends StatelessWidget {
       color: Colors.black.withValues(alpha: 0.68),
       child: ListTile(
         leading: Icon(icon, color: Colors.deepPurpleAccent),
-        title: Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(value.isEmpty ? "Brak informacji" : value),
       ),
     );
@@ -57,9 +54,7 @@ class EventDetailsPage extends StatelessWidget {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(data["message"] ?? data["error"] ?? "Gotowe"),
-      ),
+      SnackBar(content: Text(data["message"] ?? data["error"] ?? "Gotowe")),
     );
   }
 
@@ -67,9 +62,9 @@ class EventDetailsPage extends StatelessWidget {
     final sourceUrl = (event["source_url"] ?? "").toString().trim();
 
     if (sourceUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Brak linku do biletów")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Brak linku do biletów")));
       return;
     }
 
@@ -99,9 +94,9 @@ class EventDetailsPage extends StatelessWidget {
     } catch (error) {
       if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Błąd otwierania linku: $error")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Błąd otwierania linku: $error")));
     }
   }
 
@@ -111,9 +106,7 @@ class EventDetailsPage extends StatelessWidget {
     final sourceUrl = (event["source_url"] ?? "").toString().trim();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Szczegóły wydarzenia"),
-      ),
+      appBar: AppBar(title: const Text("Szczegóły wydarzenia")),
       body: MusicBackground(
         child: Center(
           child: Container(
@@ -181,11 +174,7 @@ class EventDetailsPage extends StatelessWidget {
                         event["club"] ?? "",
                         Icons.apartment,
                       ),
-                      detailRow(
-                        "Gatunek muzyki",
-                        musicType,
-                        Icons.music_note,
-                      ),
+                      detailRow("Gatunek muzyki", musicType, Icons.music_note),
                       detailRow(
                         "Źródło informacji",
                         eventSourceName(event),

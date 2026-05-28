@@ -90,9 +90,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: Colors.black.withValues(alpha: 0.74),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
         onTap: () => goDetails(event),
@@ -163,9 +161,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Wszystkie wydarzenia"),
-      ),
+      appBar: AppBar(title: const Text("Wszystkie wydarzenia")),
       body: MusicBackground(
         child: Column(
           children: [
@@ -175,9 +171,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.62),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.10),
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
               ),
               child: Column(
                 children: [
@@ -199,26 +193,11 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
                       prefixIcon: Icon(Icons.calendar_today),
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: 2024,
-                        child: Text("2024"),
-                      ),
-                      DropdownMenuItem(
-                        value: 2025,
-                        child: Text("2025"),
-                      ),
-                      DropdownMenuItem(
-                        value: 2026,
-                        child: Text("2026"),
-                      ),
-                      DropdownMenuItem(
-                        value: 2027,
-                        child: Text("2027"),
-                      ),
-                      DropdownMenuItem(
-                        value: 2028,
-                        child: Text("2028"),
-                      ),
+                      DropdownMenuItem(value: 2024, child: Text("2024")),
+                      DropdownMenuItem(value: 2025, child: Text("2025")),
+                      DropdownMenuItem(value: 2026, child: Text("2026")),
+                      DropdownMenuItem(value: 2027, child: Text("2027")),
+                      DropdownMenuItem(value: 2028, child: Text("2028")),
                     ],
                     onChanged: changePublicYear,
                   ),
@@ -239,18 +218,18 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : events.isEmpty
-                      ? emptyState(
-                          icon: Icons.event_busy,
-                          title: "Brak wydarzeń",
-                          subtitle:
-                              "Nie znaleziono wydarzeń dla wybranego roku lub miesiąca.",
-                        )
-                      : ListView.builder(
-                          itemCount: events.length,
-                          itemBuilder: (_, index) {
-                            return publicEventCard(events[index]);
-                          },
-                        ),
+                  ? emptyState(
+                      icon: Icons.event_busy,
+                      title: "Brak wydarzeń",
+                      subtitle:
+                          "Nie znaleziono wydarzeń dla wybranego roku lub miesiąca.",
+                    )
+                  : ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (_, index) {
+                        return publicEventCard(events[index]);
+                      },
+                    ),
             ),
           ],
         ),

@@ -11,10 +11,7 @@ import '../widgets/event_form.dart';
 class EditEventPage extends StatefulWidget {
   final Map event;
 
-  const EditEventPage({
-    super.key,
-    required this.event,
-  });
+  const EditEventPage({super.key, required this.event});
 
   @override
   State<EditEventPage> createState() => _EditEventPageState();
@@ -83,11 +80,7 @@ class _EditEventPageState extends State<EditEventPage> {
     );
 
     request.files.add(
-      http.MultipartFile.fromBytes(
-        "file",
-        file.bytes!,
-        filename: file.name,
-      ),
+      http.MultipartFile.fromBytes("file", file.bytes!, filename: file.name),
     );
 
     final streamedResponse = await request.send();
@@ -114,13 +107,13 @@ class _EditEventPageState extends State<EditEventPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Zdjęcie wysłane")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Zdjęcie wysłane")));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Błąd uploadu: $responseBody")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Błąd uploadu: $responseBody")));
     }
   }
 
@@ -161,9 +154,9 @@ class _EditEventPageState extends State<EditEventPage> {
     if (response.statusCode == 200) {
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Błąd edycji: ${response.body}")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Błąd edycji: ${response.body}")));
     }
   }
 

@@ -100,10 +100,7 @@ class _EventListPageState extends State<EventListPage> {
             final label = (item["label"] ?? "").toString();
 
             if (value.isNotEmpty && label.isNotEmpty) {
-              loadedCities.add({
-                "value": value,
-                "label": label,
-              });
+              loadedCities.add({"value": value, "label": label});
             }
           }
         }
@@ -116,10 +113,7 @@ class _EventListPageState extends State<EventListPage> {
             final label = (item["label"] ?? "").toString();
 
             if (value.isNotEmpty && label.isNotEmpty) {
-              loadedMusicTypes.add({
-                "value": value,
-                "label": label,
-              });
+              loadedMusicTypes.add({"value": value, "label": label});
             }
           }
         }
@@ -139,10 +133,7 @@ class _EventListPageState extends State<EventListPage> {
 
   List<DropdownMenuItem<String>> cityDropdownItems() {
     final items = <DropdownMenuItem<String>>[
-      const DropdownMenuItem(
-        value: "",
-        child: Text("Wszystkie miasta"),
-      ),
+      const DropdownMenuItem(value: "", child: Text("Wszystkie miasta")),
     ];
 
     for (final city in cityFilterOptions) {
@@ -159,10 +150,7 @@ class _EventListPageState extends State<EventListPage> {
 
   List<DropdownMenuItem<String>> musicTypeDropdownItems() {
     final items = <DropdownMenuItem<String>>[
-      const DropdownMenuItem(
-        value: "",
-        child: Text("Wszystkie gatunki"),
-      ),
+      const DropdownMenuItem(value: "", child: Text("Wszystkie gatunki")),
     ];
 
     for (final musicType in musicTypeFilterOptions) {
@@ -462,9 +450,7 @@ class _EventListPageState extends State<EventListPage> {
       child: Card(
         margin: EdgeInsets.zero,
         color: Colors.black.withValues(alpha: 0.76),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         elevation: 0,
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
@@ -648,9 +634,7 @@ class _EventListPageState extends State<EventListPage> {
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.10),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: Column(
         children: [
@@ -792,23 +776,23 @@ class _EventListPageState extends State<EventListPage> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : events.isEmpty
-                      ? emptyState(
-                          icon: Icons.search_off,
-                          title: "Nie znaleziono wydarzeń",
-                          subtitle:
-                              "Zmień filtry albo wybierz inny miesiąc, aby zobaczyć więcej wydarzeń.",
-                          action: OutlinedButton.icon(
-                            onPressed: clearFilters,
-                            icon: const Icon(Icons.restart_alt),
-                            label: const Text("Wyczyść filtry"),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: events.length,
-                          itemBuilder: (_, index) {
-                            return eventCard(events[index]);
-                          },
-                        ),
+                  ? emptyState(
+                      icon: Icons.search_off,
+                      title: "Nie znaleziono wydarzeń",
+                      subtitle:
+                          "Zmień filtry albo wybierz inny miesiąc, aby zobaczyć więcej wydarzeń.",
+                      action: OutlinedButton.icon(
+                        onPressed: clearFilters,
+                        icon: const Icon(Icons.restart_alt),
+                        label: const Text("Wyczyść filtry"),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (_, index) {
+                        return eventCard(events[index]);
+                      },
+                    ),
             ),
             paginationBar(),
           ],

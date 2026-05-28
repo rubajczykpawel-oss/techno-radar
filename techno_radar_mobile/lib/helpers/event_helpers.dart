@@ -78,9 +78,7 @@ Future<void> handleUnauthorized(BuildContext context) async {
   if (!context.mounted) return;
 
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text("Sesja wygasła. Zaloguj się ponownie."),
-    ),
+    const SnackBar(content: Text("Sesja wygasła. Zaloguj się ponownie.")),
   );
 
   Navigator.pushAndRemoveUntil(
