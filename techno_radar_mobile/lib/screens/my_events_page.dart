@@ -98,9 +98,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: Colors.black.withValues(alpha: 0.74),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
         onTap: () => goDetails(event),
@@ -152,25 +150,23 @@ class _MyEventsPageState extends State<MyEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Moje wydarzenia"),
-      ),
+      appBar: AppBar(title: const Text("Moje wydarzenia")),
       body: MusicBackground(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : events.isEmpty
-                ? emptyState(
-                    icon: Icons.favorite_border,
-                    title: "Nie masz zapisanych wydarzeń",
-                    subtitle:
-                        "Dodaj wydarzenie do swojej listy, aby łatwo wrócić do niego później.",
-                  )
-                : ListView.builder(
-                    itemCount: events.length,
-                    itemBuilder: (_, index) {
-                      return myEventCard(events[index]);
-                    },
-                  ),
+            ? emptyState(
+                icon: Icons.favorite_border,
+                title: "Nie masz zapisanych wydarzeń",
+                subtitle:
+                    "Dodaj wydarzenie do swojej listy, aby łatwo wrócić do niego później.",
+              )
+            : ListView.builder(
+                itemCount: events.length,
+                itemBuilder: (_, index) {
+                  return myEventCard(events[index]);
+                },
+              ),
       ),
     );
   }

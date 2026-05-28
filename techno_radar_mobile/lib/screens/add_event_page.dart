@@ -65,11 +65,7 @@ class _AddEventPageState extends State<AddEventPage> {
     );
 
     request.files.add(
-      http.MultipartFile.fromBytes(
-        "file",
-        file.bytes!,
-        filename: file.name,
-      ),
+      http.MultipartFile.fromBytes("file", file.bytes!, filename: file.name),
     );
 
     final streamedResponse = await request.send();
@@ -96,13 +92,13 @@ class _AddEventPageState extends State<AddEventPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Zdjęcie wysłane")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Zdjęcie wysłane")));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Błąd uploadu: $responseBody")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Błąd uploadu: $responseBody")));
     }
   }
 

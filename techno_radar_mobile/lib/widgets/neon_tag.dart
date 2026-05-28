@@ -10,9 +10,7 @@ Widget neonTag({
     decoration: BoxDecoration(
       color: color.withValues(alpha: 0.18),
       borderRadius: BorderRadius.circular(999),
-      border: Border.all(
-        color: color.withValues(alpha: 0.55),
-      ),
+      border: Border.all(color: color.withValues(alpha: 0.55)),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,

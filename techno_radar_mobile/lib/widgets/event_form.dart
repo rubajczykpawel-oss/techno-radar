@@ -75,9 +75,7 @@ class EventForm extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
+      appBar: AppBar(title: Text(title)),
       body: MusicBackground(
         child: Center(
           child: Container(
@@ -97,9 +95,7 @@ class EventForm extends StatelessWidget {
                   const SizedBox(height: 12),
                   TextField(
                     controller: city,
-                    decoration: const InputDecoration(
-                      labelText: "Miasto",
-                    ),
+                    decoration: const InputDecoration(labelText: "Miasto"),
                   ),
                   const SizedBox(height: 12),
                   TextField(

@@ -58,9 +58,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Błąd pobierania wydarzeń: ${response.body}"),
-        ),
+        SnackBar(content: Text("Błąd pobierania wydarzeń: ${response.body}")),
       );
     }
   }
@@ -103,9 +101,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
         fetchPendingEvents();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Błąd importu: ${response.body}"),
-          ),
+          SnackBar(content: Text("Błąd importu: ${response.body}")),
         );
       }
     } catch (error) {
@@ -116,9 +112,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Błąd połączenia podczas importu: $error"),
-        ),
+        SnackBar(content: Text("Błąd połączenia podczas importu: $error")),
       );
     }
   }
@@ -137,16 +131,14 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
     }
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Wydarzenie zatwierdzone")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Wydarzenie zatwierdzone")));
 
       fetchPendingEvents();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Błąd zatwierdzania: ${response.body}"),
-        ),
+        SnackBar(content: Text("Błąd zatwierdzania: ${response.body}")),
       );
     }
   }
@@ -172,9 +164,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
       fetchPendingEvents();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Błąd odrzucania wydarzenia: ${response.body}"),
-        ),
+        SnackBar(content: Text("Błąd odrzucania wydarzenia: ${response.body}")),
       );
     }
   }
@@ -218,9 +208,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       color: Colors.black.withValues(alpha: 0.74),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -310,18 +298,18 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : events.isEmpty
-                ? emptyState(
-                    icon: Icons.fact_check,
-                    title: "Brak wydarzeń do zatwierdzenia",
-                    subtitle:
-                        "Po imporcie z Ticketmastera nowe wydarzenia pojawią się tutaj.",
-                  )
-                : ListView.builder(
-                    itemCount: events.length,
-                    itemBuilder: (_, index) {
-                      return pendingEventCard(events[index]);
-                    },
-                  ),
+            ? emptyState(
+                icon: Icons.fact_check,
+                title: "Brak wydarzeń do zatwierdzenia",
+                subtitle:
+                    "Po imporcie z Ticketmastera nowe wydarzenia pojawią się tutaj.",
+              )
+            : ListView.builder(
+                itemCount: events.length,
+                itemBuilder: (_, index) {
+                  return pendingEventCard(events[index]);
+                },
+              ),
       ),
     );
   }
