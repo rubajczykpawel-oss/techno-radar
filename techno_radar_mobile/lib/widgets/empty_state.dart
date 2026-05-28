@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'glass_panel.dart';
 
 Widget emptyState({
@@ -34,12 +35,14 @@ Widget emptyState({
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.68),
+                color: Colors.white.withValues(alpha: 0.68),
                 height: 1.35,
               ),
             ),
-            if (action != null) const SizedBox(height: 18),
-            if (action != null) action,
+            if (action != null) ...[
+              const SizedBox(height: 18),
+              action,
+            ],
           ],
         ),
       ),

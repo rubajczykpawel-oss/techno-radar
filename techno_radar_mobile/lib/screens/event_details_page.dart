@@ -1,13 +1,15 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+
 import '../config/api_helper.dart';
 import '../helpers/event_helpers.dart';
-import '../widgets/glass_panel.dart';
 import '../widgets/event_image.dart';
-import '../widgets/neon_tag.dart';
+import '../widgets/glass_panel.dart';
 import '../widgets/music_background.dart';
+import '../widgets/neon_tag.dart';
 
 class EventDetailsPage extends StatelessWidget {
   final Map event;
@@ -25,7 +27,7 @@ class EventDetailsPage extends StatelessWidget {
 
   Widget detailRow(String label, String value, IconData icon) {
     return Card(
-      color: Colors.black.withOpacity(0.68),
+      color: Colors.black.withValues(alpha: 0.68),
       child: ListTile(
         leading: Icon(icon, color: Colors.deepPurpleAccent),
         title: Text(
@@ -43,8 +45,9 @@ class EventDetailsPage extends StatelessWidget {
       headers: await ApiHelper.headers(),
     );
 
+    if (!context.mounted) return;
+
     if (response.statusCode == 401) {
-      if (!context.mounted) return;
       await handleUnauthorized(context);
       return;
     }
@@ -86,7 +89,9 @@ class EventDetailsPage extends StatelessWidget {
         webOnlyWindowName: "_blank",
       );
 
-      if (!opened && context.mounted) {
+      if (!context.mounted) return;
+
+      if (!opened) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Nie udało się otworzyć linku")),
         );
@@ -192,7 +197,7 @@ class EventDetailsPage extends StatelessWidget {
                           child: Text(
                             "To wydarzenie pochodzi z Ticketmastera. Kliknij poniżej, aby przejść do strony wydarzenia i sprawdzić bilety.",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.66),
+                              color: Colors.white.withValues(alpha: 0.66),
                               height: 1.35,
                             ),
                           ),
@@ -225,9 +230,10 @@ class EventDetailsPage extends StatelessWidget {
                               child: ElevatedButton.icon(
                                 onPressed: () async {
                                   await onEdit();
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                  }
+
+                                  if (!context.mounted) return;
+
+                                  Navigator.pop(context);
                                 },
                                 icon: const Icon(Icons.edit),
                                 label: const Text("Edytuj"),
@@ -238,9 +244,10 @@ class EventDetailsPage extends StatelessWidget {
                               child: OutlinedButton.icon(
                                 onPressed: () async {
                                   await onDelete();
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                  }
+
+                                  if (!context.mounted) return;
+
+                                  Navigator.pop(context);
                                 },
                                 icon: const Icon(Icons.delete),
                                 label: const Text("Usuń"),

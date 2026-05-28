@@ -18,14 +18,14 @@ class GlassPanel extends StatelessWidget {
       width: width,
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.64),
+        color: Colors.black.withValues(alpha: 0.64),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.deepPurpleAccent.withOpacity(0.22),
+          color: Colors.deepPurpleAccent.withValues(alpha: 0.22),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurpleAccent.withOpacity(0.18),
+            color: Colors.deepPurpleAccent.withValues(alpha: 0.18),
             blurRadius: 28,
             spreadRadius: 2,
           ),

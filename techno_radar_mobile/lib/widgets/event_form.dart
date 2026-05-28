@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widgets/music_background.dart';
-import '../widgets/glass_panel.dart';
-import '../widgets/event_image.dart';
+
+import 'event_image.dart';
+import 'glass_panel.dart';
+import 'music_background.dart';
 
 class EventForm extends StatelessWidget {
   final String title;
@@ -119,7 +120,7 @@ class EventForm extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedMusicType,
+                    initialValue: selectedMusicType,
                     decoration: const InputDecoration(
                       labelText: "Gatunek muzyki",
                     ),

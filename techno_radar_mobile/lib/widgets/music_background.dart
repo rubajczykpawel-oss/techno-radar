@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_assets.dart';
 
 class MusicBackground extends StatelessWidget {
@@ -26,8 +27,8 @@ class MusicBackground extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.82),
-                  Colors.black.withOpacity(0.92),
+                  Colors.black.withValues(alpha: 0.82),
+                  Colors.black.withValues(alpha: 0.92),
                 ],
               ),
             ),

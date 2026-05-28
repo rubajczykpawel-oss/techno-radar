@@ -1,21 +1,24 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../config/api_helper.dart';
-import '../helpers/event_helpers.dart';
+import '../constants/app_assets.dart';
 import '../helpers/dropdown_items.dart';
-import '../widgets/music_background.dart';
-import '../widgets/event_image.dart';
-import '../widgets/neon_tag.dart';
+import '../helpers/event_helpers.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/event_image.dart';
+import '../widgets/music_background.dart';
+import '../widgets/neon_tag.dart';
 import 'add_event_page.dart';
 import 'edit_event_page.dart';
 import 'event_details_page.dart';
-import 'public_events_page.dart';
+import 'login_page.dart';
 import 'my_events_page.dart';
 import 'pending_imported_events_page.dart';
-import 'login_page.dart';
+import 'public_events_page.dart';
 
 class EventListPage extends StatefulWidget {
   const EventListPage({super.key});
@@ -50,6 +53,8 @@ class _EventListPageState extends State<EventListPage> {
 
   Future<void> loadAdmin() async {
     final admin = await ApiHelper.isAdmin();
+
+    if (!mounted) return;
 
     setState(() {
       isAdmin = admin;
@@ -90,13 +95,16 @@ class _EventListPageState extends State<EventListPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
 
     final data = jsonDecode(response.body);
+
+    if (!mounted) return;
 
     setState(() {
       events = data is List ? data : [];
@@ -110,8 +118,9 @@ class _EventListPageState extends State<EventListPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
@@ -210,6 +219,8 @@ class _EventListPageState extends State<EventListPage> {
       MaterialPageRoute(builder: (_) => const AddEventPage()),
     );
 
+    if (!mounted) return;
+
     fetchEvents();
   }
 
@@ -218,6 +229,8 @@ class _EventListPageState extends State<EventListPage> {
       context,
       MaterialPageRoute(builder: (_) => EditEventPage(event: event)),
     );
+
+    if (!mounted) return;
 
     fetchEvents();
   }
@@ -238,11 +251,15 @@ class _EventListPageState extends State<EventListPage> {
               MaterialPageRoute(builder: (_) => EditEventPage(event: event)),
             );
 
+            if (!mounted) return;
+
             fetchEvents();
           },
         ),
       ),
     );
+
+    if (!mounted) return;
 
     fetchEvents();
   }
@@ -266,6 +283,8 @@ class _EventListPageState extends State<EventListPage> {
       context,
       MaterialPageRoute(builder: (_) => const PendingImportedEventsPage()),
     );
+
+    if (!mounted) return;
 
     fetchEvents();
   }
@@ -310,10 +329,10 @@ class _EventListPageState extends State<EventListPage> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: accentColor.withOpacity(0.34)),
+        border: Border.all(color: accentColor.withValues(alpha: 0.34)),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withOpacity(0.10),
+            color: accentColor.withValues(alpha: 0.10),
             blurRadius: 22,
             spreadRadius: 1,
           ),
@@ -321,7 +340,7 @@ class _EventListPageState extends State<EventListPage> {
       ),
       child: Card(
         margin: EdgeInsets.zero,
-        color: Colors.black.withOpacity(0.76),
+        color: Colors.black.withValues(alpha: 0.76),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
         ),
@@ -361,7 +380,7 @@ class _EventListPageState extends State<EventListPage> {
                 Text(
                   "${eventCityName(event)} • ${event["club"] ?? ""}",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.78),
+                    color: Colors.white.withValues(alpha: 0.78),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -420,7 +439,7 @@ class _EventListPageState extends State<EventListPage> {
   Widget paginationBar() {
     return Container(
       padding: const EdgeInsets.all(10),
-      color: Colors.black.withOpacity(0.55),
+      color: Colors.black.withValues(alpha: 0.55),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -448,12 +467,14 @@ class _EventListPageState extends State<EventListPage> {
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.66),
+        color: Colors.black.withValues(alpha: 0.66),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.22)),
+        border: Border.all(
+          color: Colors.deepPurpleAccent.withValues(alpha: 0.22),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurpleAccent.withOpacity(0.12),
+            color: Colors.deepPurpleAccent.withValues(alpha: 0.12),
             blurRadius: 24,
           ),
         ],
@@ -463,7 +484,7 @@ class _EventListPageState extends State<EventListPage> {
           ClipRRect(
             borderRadius: BorderRadius.circular(18),
             child: Image.asset(
-              'assets/images/login_open.png',
+              AppAssets.loginOpen,
               width: 92,
               height: 92,
               fit: BoxFit.cover,
@@ -488,7 +509,7 @@ class _EventListPageState extends State<EventListPage> {
                       ? "Tryb administratora: zarządzaj wydarzeniami, importem i zatwierdzaniem."
                       : "Znajdź najbliższe imprezy, sprawdź bilety i zapisuj ulubione wydarzenia.",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.74),
+                    color: Colors.white.withValues(alpha: 0.74),
                     height: 1.35,
                   ),
                 ),
@@ -504,9 +525,11 @@ class _EventListPageState extends State<EventListPage> {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.62),
+        color: Colors.black.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withOpacity(0.10)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.10),
+        ),
       ),
       child: Column(
         children: [
@@ -547,7 +570,7 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
-                    value: selectedCity,
+                    initialValue: selectedCity,
                     decoration: const InputDecoration(
                       labelText: "Miasto",
                       prefixIcon: Icon(Icons.location_city),
@@ -590,7 +613,7 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
-                    value: selectedMusicType,
+                    initialValue: selectedMusicType,
                     decoration: const InputDecoration(
                       labelText: "Gatunek muzyki",
                       prefixIcon: Icon(Icons.music_note),
@@ -665,7 +688,7 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<int>(
-                    value: selectedYear,
+                    initialValue: selectedYear,
                     decoration: const InputDecoration(
                       labelText: "Rok",
                       prefixIcon: Icon(Icons.calendar_today),
@@ -675,7 +698,7 @@ class _EventListPageState extends State<EventListPage> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<int>(
-                    value: selectedMonth,
+                    initialValue: selectedMonth,
                     decoration: const InputDecoration(
                       labelText: "Miesiąc",
                       prefixIcon: Icon(Icons.date_range),

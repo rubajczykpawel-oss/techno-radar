@@ -8,9 +8,11 @@ Widget neonTag({
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.18),
+      color: color.withValues(alpha: 0.18),
       borderRadius: BorderRadius.circular(999),
-      border: Border.all(color: color.withOpacity(0.55)),
+      border: Border.all(
+        color: color.withValues(alpha: 0.55),
+      ),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -20,7 +22,7 @@ Widget neonTag({
         Text(
           text,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.92),
+            color: Colors.white.withValues(alpha: 0.92),
             fontSize: 12,
             fontWeight: FontWeight.w700,
           ),

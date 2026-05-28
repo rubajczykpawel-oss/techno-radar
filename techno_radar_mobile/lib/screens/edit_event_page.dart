@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_helper.dart';
 import '../helpers/event_helpers.dart';
 import '../widgets/event_form.dart';
@@ -64,6 +66,7 @@ class _EditEventPageState extends State<EditEventPage> {
 
     if (file.bytes == null) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Nie udało się odczytać pliku")),
       );
@@ -90,12 +93,13 @@ class _EditEventPageState extends State<EditEventPage> {
     final streamedResponse = await request.send();
     final responseBody = await streamedResponse.stream.bytesToString();
 
+    if (!mounted) return;
+
     setState(() {
       uploadingImage = false;
     });
 
     if (streamedResponse.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
@@ -109,11 +113,11 @@ class _EditEventPageState extends State<EditEventPage> {
       });
 
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Zdjęcie wysłane")),
       );
     } else {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Błąd uploadu: $responseBody")),
       );
@@ -147,13 +151,14 @@ class _EditEventPageState extends State<EditEventPage> {
       }),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
 
-    if (response.statusCode == 200 && mounted) {
+    if (response.statusCode == 200) {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

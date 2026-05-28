@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: Colors.black,
         primaryColor: Colors.deepPurpleAccent,
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.black.withOpacity(0.92),
+          backgroundColor: Colors.black.withValues(alpha: 0.92),
           elevation: 0,
           centerTitle: false,
           titleTextStyle: const TextStyle(
@@ -73,7 +73,7 @@ class _MyAppState extends State<MyApp> {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.black.withOpacity(0.42),
+          fillColor: Colors.black.withValues(alpha: 0.42),
           labelStyle: const TextStyle(color: Colors.white70),
           hintStyle: const TextStyle(color: Colors.white38),
           border: OutlineInputBorder(
@@ -82,19 +82,19 @@ class _MyAppState extends State<MyApp> {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: Colors.white.withOpacity(0.16),
+              color: Colors.white.withValues(alpha: 0.16),
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(16)),
             borderSide: BorderSide(
-              color: Colors.deepPurpleAccent.withOpacity(0.9),
+              color: Colors.deepPurpleAccent.withValues(alpha: 0.9),
               width: 1.5,
             ),
           ),
         ),
         cardTheme: CardThemeData(
-          color: Colors.black.withOpacity(0.72),
+          color: Colors.black.withValues(alpha: 0.72),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
           ),
@@ -117,7 +117,7 @@ class _MyAppState extends State<MyApp> {
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.white,
             side: BorderSide(
-              color: Colors.deepPurpleAccent.withOpacity(0.8),
+              color: Colors.deepPurpleAccent.withValues(alpha: 0.8),
             ),
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
