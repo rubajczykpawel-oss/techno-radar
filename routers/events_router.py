@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 import cloudinary.uploader
 from services.date_service import get_polish_day_of_week
+from services.city_service import get_polish_city_name
 from database import get_db
 from models import Event, UserEvent
 from schemas import EventCreate
@@ -10,6 +11,59 @@ from services.event_response_service import build_event_response
 from datetime import date
 
 router = APIRouter()
+
+@router.get("/event-filter-options")
+def get_event_filter_options(
+    db: Session = Depends(get_db)
+):
+    today_text = date.today().isoformat()
+
+    rows = (
+        db.query(Event.city, Event.music_type)
+        .filter(Event.source_name == "Ticketmaster")
+        .filter(Event.is_verified == 1)
+        .filter(Event.date >= today_text)
+        .all()
+    )
+
+    city_values = set()
+    music_type_values = set()
+
+    for city, music_type in rows:
+        if city and city.strip() != "":
+            city_values.add(city.strip())
+
+        if music_type and music_type.strip() != "":
+            music_type_values.add(music_type.strip())
+
+    cities = []
+
+    for city in city_values:
+        cities.append({
+            "value": city,
+            "label": get_polish_city_name(city)
+        })
+
+    music_types = []
+
+    for music_type in music_type_values:
+        if music_type == "Electronic":
+            label = "Muzyka elektroniczna"
+        else:
+            label = music_type
+
+        music_types.append({
+            "value": music_type,
+            "label": label
+        })
+
+    cities.sort(key=lambda item: item["label"])
+    music_types.sort(key=lambda item: item["label"])
+
+    return {
+        "cities": cities,
+        "music_types": music_types
+    }
 
 @router.get("/events")
 def get_events(
