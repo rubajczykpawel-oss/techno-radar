@@ -35,19 +35,25 @@ class _EventListPageState extends State<EventListPage> {
   String selectedCity = "";
   String selectedMusicType = "";
 
+  List<Map<String, String>> cityFilterOptions = [];
+  List<Map<String, String>> musicTypeFilterOptions = [];
+
   int selectedYear = 0;
   int selectedMonth = 0;
 
   int page = 1;
   final int limit = 5;
   bool isLoading = false;
+  bool isLoadingFilters = false;
   bool isAdmin = false;
-  bool filtersExpanded = true;
+
+  bool filtersExpanded = false;
 
   @override
   void initState() {
     super.initState();
     loadAdmin();
+    fetchFilterOptions();
     fetchEvents();
   }
 
@@ -59,6 +65,116 @@ class _EventListPageState extends State<EventListPage> {
     setState(() {
       isAdmin = admin;
     });
+  }
+
+  Future<void> fetchFilterOptions() async {
+    setState(() {
+      isLoadingFilters = true;
+    });
+
+    final response = await http.get(
+      Uri.parse("${ApiHelper.baseUrl}/event-filter-options"),
+      headers: await ApiHelper.headers(),
+    );
+
+    if (!mounted) return;
+
+    if (response.statusCode == 401) {
+      await handleUnauthorized(context);
+      return;
+    }
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      final citiesData = data["cities"];
+      final musicTypesData = data["music_types"];
+
+      final loadedCities = <Map<String, String>>[];
+      final loadedMusicTypes = <Map<String, String>>[];
+
+      if (citiesData is List) {
+        for (final item in citiesData) {
+          if (item is Map) {
+            final value = (item["value"] ?? "").toString();
+            final label = (item["label"] ?? "").toString();
+
+            if (value.isNotEmpty && label.isNotEmpty) {
+              loadedCities.add({
+                "value": value,
+                "label": label,
+              });
+            }
+          }
+        }
+      }
+
+      if (musicTypesData is List) {
+        for (final item in musicTypesData) {
+          if (item is Map) {
+            final value = (item["value"] ?? "").toString();
+            final label = (item["label"] ?? "").toString();
+
+            if (value.isNotEmpty && label.isNotEmpty) {
+              loadedMusicTypes.add({
+                "value": value,
+                "label": label,
+              });
+            }
+          }
+        }
+      }
+
+      setState(() {
+        cityFilterOptions = loadedCities;
+        musicTypeFilterOptions = loadedMusicTypes;
+        isLoadingFilters = false;
+      });
+    } else {
+      setState(() {
+        isLoadingFilters = false;
+      });
+    }
+  }
+
+  List<DropdownMenuItem<String>> cityDropdownItems() {
+    final items = <DropdownMenuItem<String>>[
+      const DropdownMenuItem(
+        value: "",
+        child: Text("Wszystkie miasta"),
+      ),
+    ];
+
+    for (final city in cityFilterOptions) {
+      items.add(
+        DropdownMenuItem(
+          value: city["value"] ?? "",
+          child: Text(city["label"] ?? ""),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> musicTypeDropdownItems() {
+    final items = <DropdownMenuItem<String>>[
+      const DropdownMenuItem(
+        value: "",
+        child: Text("Wszystkie gatunki"),
+      ),
+    ];
+
+    for (final musicType in musicTypeFilterOptions) {
+      items.add(
+        DropdownMenuItem(
+          value: musicType["value"] ?? "",
+          child: Text(musicType["label"] ?? ""),
+        ),
+      );
+    }
+
+    return items;
   }
 
   Future<void> fetchEvents() async {
@@ -221,6 +337,7 @@ class _EventListPageState extends State<EventListPage> {
 
     if (!mounted) return;
 
+    fetchFilterOptions();
     fetchEvents();
   }
 
@@ -232,6 +349,7 @@ class _EventListPageState extends State<EventListPage> {
 
     if (!mounted) return;
 
+    fetchFilterOptions();
     fetchEvents();
   }
 
@@ -253,6 +371,7 @@ class _EventListPageState extends State<EventListPage> {
 
             if (!mounted) return;
 
+            fetchFilterOptions();
             fetchEvents();
           },
         ),
@@ -261,6 +380,7 @@ class _EventListPageState extends State<EventListPage> {
 
     if (!mounted) return;
 
+    fetchFilterOptions();
     fetchEvents();
   }
 
@@ -286,6 +406,7 @@ class _EventListPageState extends State<EventListPage> {
 
     if (!mounted) return;
 
+    fetchFilterOptions();
     fetchEvents();
   }
 
@@ -539,9 +660,11 @@ class _EventListPageState extends State<EventListPage> {
               "Filtry wydarzeń",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text(
-              "Dopasuj listę do miasta, gatunku i terminu.",
-              style: TextStyle(color: Colors.white54),
+            subtitle: Text(
+              isLoadingFilters
+                  ? "Ładowanie dostępnych miast i gatunków..."
+                  : "Dopasuj listę do miasta, gatunku i terminu.",
+              style: const TextStyle(color: Colors.white54),
             ),
             trailing: IconButton(
               icon: Icon(
@@ -575,41 +698,8 @@ class _EventListPageState extends State<EventListPage> {
                       labelText: "Miasto",
                       prefixIcon: Icon(Icons.location_city),
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: "",
-                        child: Text("Wszystkie miasta"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Warsaw",
-                        child: Text("Warszawa"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Kraków",
-                        child: Text("Kraków"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Wrocław",
-                        child: Text("Wrocław"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Gdańsk",
-                        child: Text("Gdańsk"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Katowice",
-                        child: Text("Katowice"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Poznań",
-                        child: Text("Poznań"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Łódź",
-                        child: Text("Łódź"),
-                      ),
-                    ],
-                    onChanged: changeCity,
+                    items: cityDropdownItems(),
+                    onChanged: isLoadingFilters ? null : changeCity,
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
@@ -618,73 +708,8 @@ class _EventListPageState extends State<EventListPage> {
                       labelText: "Gatunek muzyki",
                       prefixIcon: Icon(Icons.music_note),
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: "",
-                        child: Text("Wszystkie gatunki"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Techno",
-                        child: Text("Techno"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Hard Techno",
-                        child: Text("Hard Techno"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Acid Techno",
-                        child: Text("Acid Techno"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Minimal",
-                        child: Text("Minimal"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Industrial Techno",
-                        child: Text("Industrial Techno"),
-                      ),
-                      DropdownMenuItem(
-                        value: "House",
-                        child: Text("House"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Tech House",
-                        child: Text("Tech House"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Deep House",
-                        child: Text("Deep House"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Trance",
-                        child: Text("Trance"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Psytrance",
-                        child: Text("Psytrance"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Drum and Bass",
-                        child: Text("Drum and Bass"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Dubstep",
-                        child: Text("Dubstep"),
-                      ),
-                      DropdownMenuItem(
-                        value: "EDM",
-                        child: Text("EDM"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Rave",
-                        child: Text("Rave"),
-                      ),
-                      DropdownMenuItem(
-                        value: "Electronic",
-                        child: Text("Muzyka elektroniczna"),
-                      ),
-                    ],
-                    onChanged: changeMusicType,
+                    items: musicTypeDropdownItems(),
+                    onChanged: isLoadingFilters ? null : changeMusicType,
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<int>(
