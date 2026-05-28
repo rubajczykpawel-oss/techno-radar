@@ -1,13 +1,15 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../config/api_helper.dart';
 import '../constants/app_assets.dart';
-import '../widgets/music_background.dart';
 import '../widgets/glass_panel.dart';
-import 'register_page.dart';
+import '../widgets/music_background.dart';
 import 'event_list_page.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -190,7 +192,7 @@ class _LoginPageState extends State<LoginPage> {
                           : "Znajdź wydarzenia techno w Polsce, zapisz ulubione i sprawdź bilety.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.75),
+                        color: Colors.white.withValues(alpha: 0.75),
                         fontSize: isSmallScreen ? 13 : 14,
                         height: 1.35,
                       ),
@@ -225,8 +227,9 @@ class _LoginPageState extends State<LoginPage> {
                             ? const SizedBox(
                                 width: 22,
                                 height: 22,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text("Zaloguj się"),
                       ),

@@ -1,11 +1,13 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_helper.dart';
 import '../helpers/event_helpers.dart';
-import '../widgets/music_background.dart';
-import '../widgets/event_image.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/event_image.dart';
+import '../widgets/music_background.dart';
 import 'event_details_page.dart';
 
 class MyEventsPage extends StatefulWidget {
@@ -35,13 +37,16 @@ class _MyEventsPageState extends State<MyEventsPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
 
     final data = jsonDecode(response.body);
+
+    if (!mounted) return;
 
     setState(() {
       events = data is List ? data : [];
@@ -55,8 +60,9 @@ class _MyEventsPageState extends State<MyEventsPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
@@ -91,7 +97,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
   Widget myEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.74),
+      color: Colors.black.withValues(alpha: 0.74),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(22),
       ),
@@ -155,7 +161,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
             : events.isEmpty
                 ? emptyState(
                     icon: Icons.favorite_border,
-                    title: "Nie masz zapisanych gebeurteneń",
+                    title: "Nie masz zapisanych wydarzeń",
                     subtitle:
                         "Dodaj wydarzenie do swojej listy, aby łatwo wrócić do niego później.",
                   )

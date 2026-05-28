@@ -8,14 +8,14 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
       height: height,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.78),
+        color: Colors.black.withValues(alpha: 0.78),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.deepPurpleAccent.withOpacity(0.38),
+          color: Colors.deepPurpleAccent.withValues(alpha: 0.38),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurpleAccent.withOpacity(0.12),
+            color: Colors.deepPurpleAccent.withValues(alpha: 0.12),
             blurRadius: 18,
           ),
         ],
@@ -30,9 +30,9 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.deepPurpleAccent.withOpacity(0.28),
-                    Colors.black.withOpacity(0.88),
-                    Colors.blueAccent.withOpacity(0.16),
+                    Colors.deepPurpleAccent.withValues(alpha: 0.28),
+                    Colors.black.withValues(alpha: 0.88),
+                    Colors.blueAccent.withValues(alpha: 0.16),
                   ],
                 ),
               ),
@@ -64,7 +64,7 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
                     "Organizator nie udostępnił grafiki dla tego wydarzenia.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.60),
+                      color: Colors.white.withValues(alpha: 0.60),
                       fontSize: 12,
                       height: 1.25,
                     ),
@@ -93,7 +93,7 @@ Widget eventImage(String? imageUrl, {double height = 190}) {
       alignment: Alignment.center,
       errorBuilder: (context, error, stackTrace) {
         return Container(
-          color: Colors.black.withOpacity(0.78),
+          color: Colors.black.withValues(alpha: 0.78),
           child: const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

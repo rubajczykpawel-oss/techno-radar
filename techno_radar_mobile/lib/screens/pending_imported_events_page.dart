@@ -1,11 +1,13 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_helper.dart';
 import '../helpers/event_helpers.dart';
-import '../widgets/music_background.dart';
-import '../widgets/event_image.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/event_image.dart';
+import '../widgets/music_background.dart';
 
 class PendingImportedEventsPage extends StatefulWidget {
   const PendingImportedEventsPage({super.key});
@@ -215,7 +217,7 @@ class _PendingImportedEventsPageState extends State<PendingImportedEventsPage> {
   Widget pendingEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.74),
+      color: Colors.black.withValues(alpha: 0.74),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(22),
       ),

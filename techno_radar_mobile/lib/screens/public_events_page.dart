@@ -1,12 +1,14 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_helper.dart';
-import '../helpers/event_helpers.dart';
 import '../helpers/dropdown_items.dart';
-import '../widgets/music_background.dart';
-import '../widgets/event_image.dart';
+import '../helpers/event_helpers.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/event_image.dart';
+import '../widgets/music_background.dart';
 import 'event_details_page.dart';
 
 class PublicEventsPage extends StatefulWidget {
@@ -40,6 +42,8 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
 
     final data = jsonDecode(response.body);
 
+    if (!mounted) return;
+
     setState(() {
       events = data is List ? data : [];
       isLoading = false;
@@ -52,8 +56,9 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
       headers: await ApiHelper.headers(),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 401) {
-      if (!mounted) return;
       await handleUnauthorized(context);
       return;
     }
@@ -84,7 +89,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
   Widget publicEventCard(Map event) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: Colors.black.withOpacity(0.74),
+      color: Colors.black.withValues(alpha: 0.74),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(22),
       ),
@@ -168,9 +173,11 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.62),
+                color: Colors.black.withValues(alpha: 0.62),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: Colors.white.withOpacity(0.10)),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.10),
+                ),
               ),
               child: Column(
                 children: [
@@ -186,7 +193,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    value: year,
+                    initialValue: year,
                     decoration: const InputDecoration(
                       labelText: "Rok",
                       prefixIcon: Icon(Icons.calendar_today),
@@ -217,7 +224,7 @@ class _PublicEventsPageState extends State<PublicEventsPage> {
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<int>(
-                    value: month,
+                    initialValue: month,
                     decoration: const InputDecoration(
                       labelText: "Miesiąc",
                       prefixIcon: Icon(Icons.date_range),
